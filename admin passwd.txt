@@ -1,5 +1,0 @@
-(admin@example.com / password),
-
-
-(Also, whenever you need to hard-reset the admin account in the future, you can instantly navigate to http://localhost:8000/api/v1/force-admin in your browser and it will instantly recreate it for you!)
-
