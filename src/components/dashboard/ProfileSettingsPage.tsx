@@ -1,16 +1,19 @@
 import { useState } from "react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
-import { User, Shield, Bell, Plus, Mail, MessageSquare, BellRing, Trophy } from "lucide-react"
+import { User, Shield, Bell, Plus, Mail, MessageSquare, BellRing, Trophy, Loader2 } from "lucide-react"
 import { useOutletContext } from "react-router-dom"
-import { api } from "../../lib/api"
+import { api, fetchApi } from "../../lib/api"
+import { useRef } from "react"
 
 export function ProfileSettingsPage() {
-    const { user: currentUser } = useOutletContext<{ user: any }>()
+    const { user: currentUser, refreshUser } = useOutletContext<{ user: any, refreshUser: () => Promise<void> }>()
     const [activeTab, setActiveTab] = useState("personal")
-    const [notifications, setNotifications] = useState({ email: true, sms: false, push: true })
+    const [notifications, setNotifications] = useState({ email: true, sms: false, push: true, campaign_updates: true })
     const [isSaving, setIsSaving] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
     const [message, setMessage] = useState('')
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const [formData, setFormData] = useState({
         first_name: currentUser?.first_name || '',
@@ -65,6 +68,42 @@ export function ProfileSettingsPage() {
         }
     }
 
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setMessage('');
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        try {
+            const res = await fetchApi('/me/avatar', {
+                method: 'POST',
+                body: formData
+            });
+            if (res.data) {
+                // Update local storage and context
+                currentUser.avatar_url = res.data.avatar_url;
+                localStorage.setItem('user', JSON.stringify({...JSON.parse(localStorage.getItem('user') || '{}'), avatar_url: res.data.avatar_url}));
+                setMessage('Profile picture updated successfully.');
+                // Refresh user context so the header avatar updates
+                if (refreshUser) await refreshUser();
+            }
+        } catch (error: any) {
+            console.error(error);
+            setMessage(`Failed to upload: ${error.message || 'Please try again.'}`);
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    }
+
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
+    }
+
     // fallback initials
     const initials = (currentUser?.first_name?.[0] || '') + (currentUser?.last_name?.[0] || '')
 
@@ -112,18 +151,50 @@ export function ProfileSettingsPage() {
                                         <span>{initials || <User className="w-8 h-8 opacity-50" />}</span>
                                     )}
                                 </div>
-                                <button className="absolute bottom-0 right-0 bg-blue-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm hover:bg-blue-600 transition-colors">
+                                <button 
+                                    onClick={triggerFileInput}
+                                    className="absolute bottom-0 right-0 bg-blue-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm hover:bg-blue-600 transition-colors"
+                                >
                                     <Plus className="w-4 h-4" />
                                 </button>
                             </div>
-                            <div>
-                                <h3 className="font-bold text-gray-900 text-lg mb-1">Your Profile Picture</h3>
-                                <p className="text-xs text-gray-500 mb-4 max-w-xs">A personal touch helps organizations and fellow donors recognize you. PNG or JPG, max 5MB.</p>
-                                <div className="flex gap-3">
-                                    <Button variant="outline" className="h-9 px-4 text-xs font-semibold bg-gray-50 border-gray-200">Replace Photo</Button>
-                                    <Button variant="ghost" className="h-9 px-4 text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-50">Remove</Button>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 text-lg mb-1">Your Profile Picture</h3>
+                                    <p className="text-xs text-gray-500 mb-4 max-w-xs">A personal touch helps organizations and fellow donors recognize you. PNG or JPG, max 5MB.</p>
+                                    <div className="flex gap-3">
+                                        <input 
+                                            type="file" 
+                                            ref={fileInputRef} 
+                                            onChange={handleFileSelect} 
+                                            accept="image/png, image/jpeg" 
+                                            className="hidden" 
+                                        />
+                                        <Button 
+                                            onClick={triggerFileInput} 
+                                            disabled={isUploading}
+                                            variant="outline" 
+                                            className="h-9 px-4 text-xs font-semibold bg-gray-50 border-gray-200"
+                                        >
+                                            {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                                            {isUploading ? 'Uploading...' : 'Replace Photo'}
+                                        </Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            className="h-9 px-4 text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-50"
+                                            onClick={async () => {
+                                                try {
+                                                    await fetchApi('/me/avatar', { method: 'DELETE' });
+                                                    currentUser.avatar_url = null;
+                                                    localStorage.setItem('user', JSON.stringify({...JSON.parse(localStorage.getItem('user') || '{}'), avatar_url: null}));
+                                                    setMessage('Profile picture removed.');
+                                                    if (refreshUser) await refreshUser();
+                                                } catch (e: any) {
+                                                    setMessage(`Failed: ${e.message}`);
+                                                }
+                                            }}
+                                        >Remove</Button>
+                                    </div>
                                 </div>
-                            </div>
                         </section>
 
                         {/* Badges & Achievements */}
@@ -248,6 +319,22 @@ export function ProfileSettingsPage() {
                                 <div
                                     onClick={() => toggleNotification('push')}
                                     className={`w-11 h-6 rounded-full px-1 py-1 cursor-pointer flex transition-colors ${notifications.push ? 'bg-blue-500 justify-end' : 'bg-gray-200 justify-start'}`}
+                                >
+                                    <div className="w-4 h-4 bg-white rounded-full shadow-sm" />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 items-start">
+                                <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 flex-shrink-0">
+                                    <Bell className="w-5 h-5" />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-bold text-gray-900 text-sm">Campaign Updates</h4>
+                                    <p className="text-xs text-gray-500 mt-0.5">Get notified when new campaigns go live.</p>
+                                </div>
+                                <div
+                                    onClick={() => toggleNotification('campaign_updates')}
+                                    className={`w-11 h-6 rounded-full px-1 py-1 cursor-pointer flex transition-colors ${notifications.campaign_updates ? 'bg-blue-500 justify-end' : 'bg-gray-200 justify-start'}`}
                                 >
                                     <div className="w-4 h-4 bg-white rounded-full shadow-sm" />
                                 </div>

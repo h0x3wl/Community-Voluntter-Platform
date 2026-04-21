@@ -59,8 +59,6 @@ export const api = {
     
   logout: () => fetchApi('/auth/logout', { method: 'POST' }),
 
-  getMe: () => fetchApi('/me', { method: 'GET' }),
-
   forgotPassword: (email: string) => 
     fetchApi('/auth/password/forgot', { method: 'POST', body: JSON.stringify({ email }) }),
   
@@ -71,9 +69,12 @@ export const api = {
   getImpactTracker: (month: string) => fetchApi(`/me/impact?month=${month}`, { method: 'GET' }),
   getMyDonations: () => fetchApi('/me/donations', { method: 'GET' }),
   getMyApplications: () => fetchApi('/me/applications', { method: 'GET' }),
+  getNotifications: () => fetchApi('/me/notifications', { method: 'GET' }),
+  markNotificationsRead: (id?: string) => fetchApi(id ? `/me/notifications/${id}/read` : '/me/notifications/read', { method: 'PUT' }),
   
-  // --- Leaderboard ---
+  // --- Leaderboard & Badges ---
   getLeaderboard: (range: string) => fetchApi(`/leaderboard?range=${range}`, { method: 'GET' }),
+  getBadges: () => fetchApi('/badges', { method: 'GET' }),
   
   // --- Campaigns ---
   getCampaigns: () => fetchApi('/campaigns', { method: 'GET' }),
@@ -97,6 +98,7 @@ export const api = {
   createOrganization: (data: any) => fetchApi('/orgs', { method: 'POST', body: JSON.stringify(data) }),
   getOrg: (orgId: string) => fetchApi(`/orgs/${orgId}`, { method: 'GET' }),
   updateOrg: (orgId: string, data: any) => fetchApi(`/orgs/${orgId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  uploadOrgLogo: (orgId: string, formData: FormData) => fetchApi(`/orgs/${orgId}/logo`, { method: 'POST', body: formData }),
 
   // --- Organization Admin ---
   getOrgOverview: (orgId: string) => fetchApi(`/orgs/${orgId}/dashboard/overview`, { method: 'GET' }),
@@ -106,6 +108,7 @@ export const api = {
   createOrgCampaign: (orgId: string, data: any) => fetchApi(`/orgs/${orgId}/campaigns`, { method: 'POST', body: JSON.stringify(data) }),
   updateOrgCampaign: (orgId: string, campaignId: string, data: any) => fetchApi(`/orgs/${orgId}/campaigns/${campaignId}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteOrgCampaign: (orgId: string, campaignId: string) => fetchApi(`/orgs/${orgId}/campaigns/${campaignId}`, { method: 'DELETE' }),
+  uploadCampaignImage: (orgId: string, campaignId: string, formData: FormData) => fetchApi(`/orgs/${orgId}/campaigns/${campaignId}/images`, { method: 'POST', body: formData }),
   getOrgTeam: (orgId: string) => fetchApi(`/orgs/${orgId}/members`, { method: 'GET' }),
 
   // --- Platform Admin ---

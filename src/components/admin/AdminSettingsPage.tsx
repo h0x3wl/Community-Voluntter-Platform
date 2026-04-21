@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import {
@@ -16,6 +16,8 @@ export function AdminSettingsPage() {
     const [activeSection, setActiveSection] = useState("organization")
     const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const [orgData, setOrgData] = useState<any>(null)
     const [formData, setFormData] = useState({
         name: "",
@@ -59,6 +61,32 @@ export function AdminSettingsPage() {
             ...prev,
             [e.target.name]: e.target.value
         }))
+    }
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !orgId) return;
+
+        setIsUploading(true);
+        const data = new FormData();
+        data.append('logo', file);
+
+        try {
+            const res = await api.uploadOrgLogo(orgId, data);
+            if (res.data) {
+                setOrgData(res.data);
+            }
+        } catch (error: any) {
+            console.error(error);
+            alert(`Failed to upload: ${error.message}`);
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    }
+
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
     }
 
     const handleSave = async () => {
@@ -135,12 +163,25 @@ export function AdminSettingsPage() {
                                     {/* Logo Placeholder */}
                                     <div className="flex-shrink-0">
                                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Logo</label>
-                                        <div className="w-32 h-32 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 relative group cursor-pointer shadow-sm">
-                                            <span className="text-4xl font-bold">{(formData.name || orgData?.name || "O").charAt(0).toUpperCase()}</span>
-                                            <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1.5 shadow border border-gray-100">
+                                        <div onClick={triggerFileInput} className="w-32 h-32 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 relative group cursor-pointer shadow-sm overflow-hidden">
+                                            {isUploading ? (
+                                                <Loader2 className="w-8 h-8 animate-spin" />
+                                            ) : orgData?.logo_url ? (
+                                                <img src={orgData.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-4xl font-bold">{(formData.name || orgData?.name || "O").charAt(0).toUpperCase()}</span>
+                                            )}
+                                            <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1.5 shadow border border-gray-100 group-hover:scale-110 transition-transform">
                                                 <Pencil className="w-4 h-4 text-gray-600" />
                                             </div>
                                         </div>
+                                        <input 
+                                            type="file" 
+                                            ref={fileInputRef} 
+                                            onChange={handleFileSelect} 
+                                            accept="image/png, image/jpeg" 
+                                            className="hidden" 
+                                        />
                                     </div>
 
                                     {/* Form Fields */}

@@ -70,7 +70,7 @@ export function AllCampaignsPage() {
                             const progress = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0
                             
                             return (
-                                <div key={campaign.public_id || i} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow group flex flex-col">
+                                <div key={campaign.public_id || i} className={`bg-white rounded-2xl border ${campaign.is_urgent ? 'border-red-500 shadow-red-500/10' : 'border-gray-100'} shadow-sm overflow-hidden hover:shadow-lg transition-shadow group flex flex-col`}>
                                     <Link to={`/campaigns/${campaign.share_slug || campaign.public_id || i}`} className="h-48 relative overflow-hidden block">
                                         <img 
                                             src={campaign.image_url || `https://picsum.photos/seed/${campaign.public_id || i}/400/300`} 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import {
@@ -27,6 +27,8 @@ export function AdminCampaignsPage() {
     const [isWizardOpen, setIsWizardOpen] = useState(false)
     const [wizardStatus, setWizardStatus] = useState<"idle" | "submitting" | "success">("idle")
     const [editingCampaign, setEditingCampaign] = useState<any>(null)
+    const [campaignImageFile, setCampaignImageFile] = useState<File | null>(null)
+    const campaignImageRef = useRef<HTMLInputElement>(null)
 
     const fetchAll = async () => {
         try {
@@ -61,10 +63,20 @@ export function AdminCampaignsPage() {
 
         setWizardStatus("submitting")
         try {
+            let createdCampaign: any = null;
             if (editingCampaign) {
                 await api.updateOrgCampaign(orgId, editingCampaign.public_id, campaignData);
+                createdCampaign = editingCampaign;
             } else {
-                await api.createOrgCampaign(orgId, campaignData);
+                const res = await api.createOrgCampaign(orgId, campaignData);
+                createdCampaign = res?.data;
+            }
+
+            // Upload image if one was selected
+            if (campaignImageFile && createdCampaign?.public_id) {
+                const imgForm = new FormData();
+                imgForm.append('image', campaignImageFile);
+                await api.uploadCampaignImage(orgId, createdCampaign.public_id, imgForm).catch(e => console.error('Image upload failed:', e));
             }
             
             // Re-fetch everything to show accurate DB changes
@@ -75,6 +87,8 @@ export function AdminCampaignsPage() {
                 setIsWizardOpen(false)
                 setWizardStatus("idle")
                 setEditingCampaign(null)
+                setCampaignImageFile(null)
+                if (campaignImageRef.current) campaignImageRef.current.value = '';
             }, 1500)
         } catch (error: any) {
             console.error("Failed to save campaign:", error)
@@ -328,9 +342,24 @@ export function AdminCampaignsPage() {
                                     </button>
                                 </div>
                                 <form onSubmit={handleCreateOrEditCampaign} className="p-6 space-y-6">
-                                    {/* Cover Image Upload (Mock) */}
-                                    <div className="w-full h-40 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-500 cursor-pointer hover:bg-slate-100 transition-colors overflow-hidden">
-                                        {editingCampaign?.image_url ? (
+                                    {/* Cover Image Upload */}
+                                    <input
+                                        type="file"
+                                        ref={campaignImageRef}
+                                        accept="image/png, image/jpeg, image/webp"
+                                        className="hidden"
+                                        onChange={(e) => setCampaignImageFile(e.target.files?.[0] || null)}
+                                    />
+                                    <div
+                                        className="w-full h-40 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-500 cursor-pointer hover:bg-slate-100 transition-colors overflow-hidden"
+                                        onClick={() => campaignImageRef.current?.click()}
+                                    >
+                                        {campaignImageFile ? (
+                                            <div className="flex flex-col items-center">
+                                                <img src={URL.createObjectURL(campaignImageFile)} alt="Preview" className="w-full h-32 object-cover rounded-lg opacity-90" />
+                                                <span className="text-xs text-green-600 font-semibold mt-1">{campaignImageFile.name}</span>
+                                            </div>
+                                        ) : editingCampaign?.image_url ? (
                                             <img src={editingCampaign.image_url} alt="Cover" className="w-full h-full object-cover opacity-80 mix-blend-multiply" />
                                         ) : (
                                             <>

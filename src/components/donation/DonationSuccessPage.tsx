@@ -86,9 +86,11 @@ export function DonationSuccessPage() {
                     </div>
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Success!</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    {donation ? `You just donated ${amountFormatted}!` : 'Donation Successful!'}
+                </h1>
                 <p className="text-gray-500 text-sm leading-relaxed mb-8 px-4">
-                    Thank you for your generous contribution. Your support directly enables us to continue our mission of providing sustainable resources to communities in need.
+                    Thank you for your generous contribution{donation?.campaign?.title ? ` to ${donation.campaign.title}` : ''}. Your support directly enables us to continue our mission of providing sustainable resources to communities in need.
                 </p>
 
                 {/* Receipt Box */}

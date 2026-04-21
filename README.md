@@ -1,73 +1,97 @@
-# React + TypeScript + Vite
+# Community Volunteer Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a full-stack application for managing community volunteering and campaigns. The platform consists of a **React + Vite** frontend and a **Laravel (PHP)** backend.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Before you begin, ensure you have the following installed on your machine:
 
-## React Compiler
+- **Node.js**: (Version 18.x or higher is recommended)
+- **Composer**: For PHP dependency management
+- **PHP**: (Version 8.1 or higher)
+- **MySQL / PostgreSQL** or any other compatible database server
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Getting Started (Backend - Laravel)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The backend is located in the `backend/` directory.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1. **Navigate to the backend directory**:
+   ```bash
+   cd backend
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+2. **Install PHP dependencies**:
+   ```bash
+   composer install
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. **Set up the environment variables**:
+   Create a copy of the `.env.example` file and name it `.env`:
+   ```bash
+   copy .env.example .env
+   ```
+   *(For macOS/Linux, use `cp .env.example .env`)*
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+4. **Generate application key**:
+   ```bash
+   php artisan key:generate
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+5. **Configure the Database**:
+   Open the `.env` file and configure your database connection settings:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=your_database_name
+   DB_USERNAME=your_database_user
+   DB_PASSWORD=your_database_password
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+6. **Run Migrations (Create database tables)**:
+   Make sure your database server is running and the database exists, then run:
+   ```bash
+   php artisan migrate
+   ```
+
+7. **Link Storage**:
+   To ensure file uploads work properly, create a symbolic link:
+   ```bash
+   php artisan storage:link
+   ```
+
+8. **Start the Laravel Development Server**:
+   ```bash
+   php artisan serve
+   ```
+   *The backend will now be running on http://127.0.0.1:8000*
+
+---
+
+## 💻 Getting Started (Frontend - React)
+
+The frontend is located at the root of the project. Open a new terminal tab to run these commands so the backend can keep running.
+
+1. **Navigate to the project root** (if you are in the `backend` folder):
+   ```bash
+   cd ..
+   ```
+
+2. **Install Node dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start the Vite Development Server**:
+   ```bash
+   npm run dev
+   ```
+   *The frontend will now be running (usually on http://localhost:5173).*
+
+---
+
+## 🚀 Usage
+
+You can now visit the Vite development server URL in your browser to view the application interactively! Make sure *both* the backend server (`php artisan serve`) and the frontend server (`npm run dev`) are running simultaneously.

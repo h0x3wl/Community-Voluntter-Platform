@@ -10,8 +10,8 @@ import {
     LogOut,
     Bell,
     Search,
-    ChevronDown,
-    Home
+    Home,
+    CheckCircle2
 } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
@@ -35,6 +35,9 @@ export function DashboardLayout() {
     const navigate = useNavigate()
     const [user, setUser] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [notifications, setNotifications] = useState<any[]>([])
+    const [unreadCount, setUnreadCount] = useState(0)
+    const [showNotifications, setShowNotifications] = useState(false)
 
     const refreshUser = async () => {
         try {
@@ -55,6 +58,17 @@ export function DashboardLayout() {
                 const response = await api.getMe()
                 setUser(response.data)
                 localStorage.setItem("user", JSON.stringify(response.data))
+                
+                // Fetch notifications
+                try {
+                    const notifRes = await api.getNotifications()
+                    if (notifRes.data) {
+                        setNotifications(notifRes.data.data)
+                        setUnreadCount(notifRes.data.unread_count)
+                    }
+                } catch (e) {
+                    console.error(e)
+                }
             } catch (err) {
                 localStorage.removeItem("token")
                 navigate("/login")
@@ -74,6 +88,16 @@ export function DashboardLayout() {
         }
         localStorage.removeItem("token")
         navigate("/login")
+    }
+
+    const handleMarkAllRead = async () => {
+        try {
+            await api.markNotificationsRead()
+            setUnreadCount(0)
+            setNotifications(notifications.map(n => ({...n, read_at: new Date().toISOString()})))
+        } catch (e) {
+            console.error(e)
+        }
     }
 
     if (isLoading) {
@@ -153,10 +177,53 @@ export function DashboardLayout() {
                             />
                         </div>
 
-                        <button className="relative text-gray-400 hover:text-gray-600 transition-colors">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute -top-1 -right-0.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-                        </button>
+                        <div className="relative">
+                            <button 
+                                onClick={() => setShowNotifications(!showNotifications)}
+                                className="relative text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <Bell className="w-5 h-5" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white text-[9px] font-bold text-white flex items-center justify-center">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>
+                            
+                            {showNotifications && (
+                                <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                                    <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                        <h3 className="font-bold text-gray-900 text-sm">Notifications</h3>
+                                        {unreadCount > 0 && (
+                                            <button onClick={handleMarkAllRead} className="text-xs text-blue-600 font-medium hover:underline flex items-center gap-1">
+                                                <CheckCircle2 className="w-3 h-3" /> Mark all read
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="max-h-96 overflow-y-auto">
+                                        {notifications.length === 0 ? (
+                                            <div className="p-6 text-center text-sm text-gray-500">No notifications yet.</div>
+                                        ) : (
+                                            <div className="divide-y divide-gray-50">
+                                                {notifications.map((n: any) => (
+                                                    <div key={n.id} className={cn("p-4 flex gap-3 hover:bg-gray-50 transition-colors", !n.read_at && "bg-blue-50/30")}>
+                                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
+                                                            <Bell className="w-5 h-5" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-semibold text-gray-900 leading-tight mb-1">{n.data?.title || 'Notification'}</p>
+                                                            <p className="text-xs text-gray-500 mb-2">{n.data?.message || ''}</p>
+                                                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{new Date(n.created_at).toLocaleDateString()}</p>
+                                                        </div>
+                                                        {!n.read_at && <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         <div className="flex items-center gap-3 pl-6 border-l border-gray-100">
                             <img
@@ -168,7 +235,6 @@ export function DashboardLayout() {
                                 <p className="font-medium text-gray-900 leading-none">{user?.first_name} {user?.last_name}</p>
                                 <p className="text-gray-500 text-xs mt-0.5 capitalize">{user?.role || 'Donor'}</p>
                             </div>
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
                         </div>
                     </div>
                 </header>

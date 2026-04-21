@@ -73,14 +73,6 @@ export function MyDonationsPage() {
                         className="pl-9 h-12 bg-gray-50 border-gray-100 focus:bg-white transition-all rounded-xl"
                     />
                 </div>
-                <Button variant="outline" className="h-12 px-6 rounded-xl border-gray-200 text-gray-700 font-medium">
-                    <Filter className="w-4 h-4 mr-2" />
-                    All Statuses
-                </Button>
-                <Button variant="outline" className="h-12 px-6 rounded-xl border-gray-200 text-gray-700 font-medium">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Last 30 Days
-                </Button>
             </div>
 
             {/* Table */}

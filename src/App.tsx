@@ -15,6 +15,7 @@ import { UrgentRequestsPage } from "./components/dashboard/UrgentRequestsPage";
 import { ApplicationsPage } from "./components/dashboard/ApplicationsPage";
 import { LeaderboardPage } from "./components/dashboard/LeaderboardPage";
 import { ImpactTrackerPage } from "./components/dashboard/ImpactTrackerPage";
+import { BadgesViewAllPage } from "./components/dashboard/BadgesViewAllPage";
 import { ProfileSettingsPage } from "./components/dashboard/ProfileSettingsPage";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboardPage } from "./components/admin/AdminDashboardPage";
@@ -72,6 +73,7 @@ function App() {
           <Route path="applications" element={<ApplicationsPage />} />
           <Route path="leaderboard" element={<LeaderboardPage />} />
           <Route path="impact" element={<ImpactTrackerPage />} />
+          <Route path="impact/badges" element={<BadgesViewAllPage />} />
           <Route path="profile" element={<ProfileSettingsPage />} />
         </Route>
 

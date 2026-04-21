@@ -1,6 +1,6 @@
 import { Button } from "../ui/button"
 import { Link, useOutletContext } from "react-router-dom"
-import { Calendar, Download, Users, Clock, Leaf, MoreHorizontal, ArrowUpRight } from "lucide-react"
+import { Download, Users, Clock, Leaf, MoreHorizontal, ArrowUpRight, Trophy } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
 
@@ -76,6 +76,7 @@ function MilestoneCard({ title, percentage, description, colorClass, bgBarClass 
 export function ImpactTrackerPage() {
     const { user } = useOutletContext<{ user: any }>()
     const [impact, setImpact] = useState<any>(null)
+    const [leaderboardStats, setLeaderboardStats] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
@@ -83,10 +84,17 @@ export function ImpactTrackerPage() {
             const today = new Date()
             const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
             try {
-                const response = await api.getImpactTracker(monthStr)
-                setImpact(response.data)
+                const impactRes = await api.getImpactTracker(monthStr)
+                setImpact(impactRes?.data || impactRes)
             } catch (err) {
                 console.error("Failed to fetch impact", err)
+            }
+
+            try {
+                const lbRes = await api.getLeaderboard('all_time')
+                setLeaderboardStats(lbRes?.data || lbRes)
+            } catch (err) {
+                console.error("Failed to fetch leaderboard stats", err)
             } finally {
                 setIsLoading(false)
             }
@@ -111,13 +119,49 @@ export function ImpactTrackerPage() {
                     <p className="text-gray-500">See how your contributions are making a difference today.</p>
                 </div>
                 <div className="flex gap-3">
-                    <Button variant="outline" className="bg-white border-gray-200">
-                        <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                        Monthly View
-                    </Button>
-                    <Button variant="outline" className="bg-white border-gray-200">
+                    <Button
+                        variant="outline"
+                        className="bg-white border-gray-200"
+                        onClick={() => {
+                            const reportData = {
+                                generated_at: new Date().toISOString(),
+                                user: {
+                                    name: `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
+                                    level: user?.level || 1,
+                                    xp: user?.xp || 0,
+                                    points_balance: user?.points_balance || 0,
+                                    total_donated: (user?.total_donated_cents || 0) / 100,
+                                    donation_count: user?.donation_count || 0,
+                                },
+                                impact: {
+                                    lives_impacted: impact?.lives_impacted || 0,
+                                    volunteer_hours: impact?.volunteer_hours || 0,
+                                    trees_planted: impact?.trees_planted || 0,
+                                    monthly_goal_progress: impact?.monthly_goal_progress || null,
+                                    milestones: impact?.milestones || [],
+                                    highlights: impact?.highlights || [],
+                                },
+                                leaderboard: {
+                                    rank: leaderboardStats?.current_user_rank || null,
+                                    total_donors: leaderboardStats?.total_donors || null,
+                                    top_10_percent: leaderboardStats?.current_user_rank && leaderboardStats?.total_donors
+                                        ? (leaderboardStats.current_user_rank / leaderboardStats.total_donors) <= 0.1
+                                        : false,
+                                },
+                            };
+                            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `impact-report-${new Date().toISOString().slice(0, 10)}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                        }}
+                    >
                         <Download className="w-4 h-4 mr-2 text-gray-500" />
-                        Report
+                        Download Report
                     </Button>
                 </div>
             </div>
@@ -150,6 +194,14 @@ export function ImpactTrackerPage() {
                                     <ArrowUpRight className="w-3.5 h-3.5 mr-1" />
                                     Active supporter
                                 </span>
+                                {leaderboardStats?.current_user_rank && leaderboardStats?.total_donors && (
+                                    (leaderboardStats.current_user_rank / leaderboardStats.total_donors) <= 0.1 && (
+                                        <span className="bg-orange-50 text-orange-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center border border-orange-100 shadow-sm">
+                                            <Trophy className="w-3.5 h-3.5 mr-1 text-orange-500" />
+                                            Top 10% Donor
+                                        </span>
+                                    )
+                                )}
                             </div>
 
                             <Link to="/">
@@ -191,7 +243,12 @@ export function ImpactTrackerPage() {
             <div>
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-bold text-gray-900">Upcoming Milestones</h2>
-                    <Link to="/user/leaderboard" className="text-sm font-semibold text-blue-500 hover:text-blue-600">View All</Link>
+                    <div className="flex gap-4 items-center">
+                        <Link to="/user/impact/badges" className="text-sm font-semibold text-orange-500 hover:text-orange-600 flex items-center">
+                            View Badges <Trophy className="w-3 h-3 ml-1" />
+                        </Link>
+                        <Link to="/user/leaderboard" className="text-sm font-semibold text-blue-500 hover:text-blue-600">View Leaderboard</Link>
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(impact?.milestones || []).slice(0, 2).map((ms: any, i: number) => {
