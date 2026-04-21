@@ -11,7 +11,9 @@ import {
     Bell,
     Search,
     Home,
-    CheckCircle2
+    CheckCircle2,
+    Check,
+    XCircle
 } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
@@ -97,6 +99,21 @@ export function DashboardLayout() {
             setNotifications(notifications.map(n => ({...n, read_at: new Date().toISOString()})))
         } catch (e) {
             console.error(e)
+        }
+    }
+
+    const handleInviteResponse = async (notificationId: string, action: 'accept' | 'reject') => {
+        try {
+            await api.respondToOrgInvite(notificationId, action)
+            // Update the notification locally
+            setNotifications(notifications.map(n => 
+                n.id === notificationId 
+                    ? { ...n, read_at: new Date().toISOString(), data: { ...n.data, responded: action } }
+                    : n
+            ))
+            setUnreadCount(Math.max(0, unreadCount - 1))
+        } catch (e: any) {
+            alert("Failed: " + (e?.message || "Unknown error"))
         }
     }
 
@@ -213,7 +230,28 @@ export function DashboardLayout() {
                                                         <div className="flex-1">
                                                             <p className="text-sm font-semibold text-gray-900 leading-tight mb-1">{n.data?.title || 'Notification'}</p>
                                                             <p className="text-xs text-gray-500 mb-2">{n.data?.message || ''}</p>
-                                                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{new Date(n.created_at).toLocaleDateString()}</p>
+                                                            {n.data?.type === 'org_invite' && !n.data?.responded && !n.read_at && (
+                                                                <div className="flex gap-2 mt-2">
+                                                                    <button 
+                                                                        onClick={() => handleInviteResponse(n.id, 'accept')}
+                                                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 transition-colors"
+                                                                    >
+                                                                        <Check className="w-3 h-3" /> Accept
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => handleInviteResponse(n.id, 'reject')}
+                                                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs font-bold hover:bg-red-100 transition-colors"
+                                                                    >
+                                                                        <XCircle className="w-3 h-3" /> Decline
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                            {n.data?.responded && (
+                                                                <span className={`text-[10px] font-bold uppercase tracking-wider ${n.data.responded === 'accept' ? 'text-green-600' : 'text-red-500'}`}>
+                                                                    {n.data.responded === 'accept' ? '✓ Accepted' : '✗ Declined'}
+                                                                </span>
+                                                            )}
+                                                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
                                                         </div>
                                                         {!n.read_at && <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />}
                                                     </div>

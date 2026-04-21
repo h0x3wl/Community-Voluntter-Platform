@@ -22,12 +22,14 @@ use App\Http\Controllers\Api\Org\OrgDashboardController;
 use App\Http\Controllers\Api\Org\OrgItemRequestController;
 use App\Http\Controllers\Api\Org\OrgOpportunityController;
 use App\Http\Controllers\Api\Org\OrgTeamController;
+use App\Http\Controllers\Api\Org\OrgGoalController;
 use App\Http\Controllers\Api\User\ImpactController;
 use App\Http\Controllers\Api\User\LeaderboardController;
 use App\Http\Controllers\Api\User\MeController;
 use App\Http\Controllers\Api\User\UserApplicationController;
 use App\Http\Controllers\Api\User\UserDonationController;
 use App\Http\Controllers\Api\User\NotificationController;
+use App\Http\Controllers\Api\User\OrgInviteResponseController;
 use App\Http\Controllers\Api\BadgeController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,6 +90,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/me/notifications', [NotificationController::class, 'index']);
         Route::put('/me/notifications/read', [NotificationController::class, 'markAsRead']);
         Route::put('/me/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/me/org-invites/{notification_id}/accept', [OrgInviteResponseController::class, 'accept']);
+        Route::post('/me/org-invites/{notification_id}/reject', [OrgInviteResponseController::class, 'reject']);
         Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
         Route::post('/opportunities/{public_id}/apply', [VolunteerApplicationController::class, 'apply']);
@@ -105,6 +109,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/orgs/{org_public_id}/dashboard/overview', [OrgDashboardController::class, 'overview']);
         Route::get('/orgs/{org_public_id}/dashboard/finance', [OrgDashboardController::class, 'finance']);
         Route::get('/orgs/{org_public_id}/dashboard/donors', [OrgDashboardController::class, 'donors']);
+        Route::put('/orgs/{org_public_id}/annual-goal', [OrgGoalController::class, 'update']);
 
         Route::get('/orgs/{org_public_id}/campaigns', [OrgCampaignController::class, 'index']);
         Route::post('/orgs/{org_public_id}/campaigns', [OrgCampaignController::class, 'store']);

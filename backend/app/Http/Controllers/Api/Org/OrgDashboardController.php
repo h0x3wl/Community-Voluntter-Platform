@@ -35,11 +35,20 @@ class OrgDashboardController extends ApiController
 
         $fundsDelta = $fundsLastMonth > 0 ? (($fundsThisMonth - $fundsLastMonth) / $fundsLastMonth) * 100 : null;
 
+        // Annual raised (current calendar year)
+        $yearStart = Carbon::now()->startOfYear();
+        $annualRaised = Donation::where('organization_id', $org->id)
+            ->where('status', 'succeeded')
+            ->where('paid_at', '>=', $yearStart)
+            ->sum('amount_cents');
+
         return $this->respond([
             'total_active_campaigns' => $activeCampaigns,
             'funds_raised_month' => $fundsThisMonth,
             'active_donors' => $activeDonors,
             'funds_delta_percent' => $fundsDelta,
+            'annual_goal_cents' => (int) ($org->annual_goal_cents ?? 0),
+            'annual_raised_cents' => (int) $annualRaised,
         ]);
     }
 
@@ -100,12 +109,20 @@ class OrgDashboardController extends ApiController
             $query->whereBetween('paid_at', [$from, $to]);
         }
 
-        $donors = $query->selectRaw('donor_user_id, donor_name, donor_email, SUM(amount_cents) as total_cents')
+        // Get aggregate stats before grouping
+        $totalCount = (clone $query)->distinct('donor_user_id')->count('donor_user_id');
+        $totalAmountCents = (clone $query)->sum('amount_cents');
+
+        $donors = $query->selectRaw('donor_user_id, donor_name, donor_email, SUM(amount_cents) as total_cents, MAX(paid_at) as last_donated_at')
             ->groupBy('donor_user_id', 'donor_name', 'donor_email')
             ->orderByDesc('total_cents')
             ->limit(50)
             ->get();
 
-        return $this->respond($donors);
+        return $this->respond([
+            'recent_donors' => $donors,
+            'total_count' => $totalCount,
+            'total_amount_cents' => (int) $totalAmountCents,
+        ]);
     }
 }

@@ -9,7 +9,7 @@ class OrganizationMemberUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role' => ['required', 'in:admin,editor,viewer'],
+            'role' => ['required', 'in:admin,manager'],
         ];
     }
 

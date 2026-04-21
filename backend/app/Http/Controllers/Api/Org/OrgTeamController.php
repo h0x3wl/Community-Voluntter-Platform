@@ -8,6 +8,7 @@ use App\Http\Requests\Org\OrganizationMemberUpdateRequest;
 use App\Models\Organization;
 use App\Models\OrganizationMember;
 use App\Models\User;
+use App\Notifications\OrgInviteNotification;
 use Illuminate\Support\Str;
 
 class OrgTeamController extends ApiController
@@ -57,6 +58,9 @@ class OrgTeamController extends ApiController
             ]
         );
 
+        // Send notification to the invited user
+        $user->notify(new OrgInviteNotification($org, $request->input('role'), $request->user()));
+
         return $this->respond([
             'member_id' => $member->id,
             'user_public_id' => $user->public_id,
@@ -64,23 +68,84 @@ class OrgTeamController extends ApiController
         ]);
     }
 
-    public function update(OrganizationMemberUpdateRequest $request, string $publicId, int $memberId)
+    public function update(OrganizationMemberUpdateRequest $request, string $publicId, string $memberId)
     {
         $org = Organization::where('public_id', $publicId)->firstOrFail();
         $this->authorize('manageTeam', $org);
 
-        $member = OrganizationMember::where('organization_id', $org->id)->findOrFail($memberId);
-        $member->update(['role' => $request->input('role')]);
+        $member = OrganizationMember::where('organization_id', $org->id)->where('id', $memberId)->first();
+        if (!$member) {
+            // Fallback: find by user public_id
+            $user = User::where('public_id', $memberId)->first();
+            if ($user) {
+                $member = OrganizationMember::where('organization_id', $org->id)->where('user_id', $user->id)->first();
+            }
+        }
+
+        if (!$member) {
+            return $this->respond(['message' => 'Member not found.'], 404);
+        }
+
+        // Cannot change the owner's role
+        if ($member->role === 'owner') {
+            return $this->respond(['message' => 'Cannot change the owner\'s role.'], 403);
+        }
+
+        // Only owner can edit an admin's role
+        $currentMember = OrganizationMember::where('organization_id', $org->id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+        if ($member->role === 'admin' && $currentMember?->role !== 'owner') {
+            return $this->respond(['message' => 'Only the owner can change an admin\'s role.'], 403);
+        }
+
+        // Cannot set anyone to owner role
+        $newRole = $request->input('role');
+        if ($newRole === 'owner') {
+            return $this->respond(['message' => 'Cannot assign owner role.'], 403);
+        }
+
+        $member->update(['role' => $newRole]);
 
         return $this->respond(['message' => 'Role updated.']);
     }
 
-    public function destroy(string $publicId, int $memberId)
+    public function destroy(string $publicId, string $memberId)
     {
         $org = Organization::where('public_id', $publicId)->firstOrFail();
         $this->authorize('manageTeam', $org);
 
-        OrganizationMember::where('organization_id', $org->id)->where('id', $memberId)->delete();
+        // Find the member
+        $member = OrganizationMember::where('organization_id', $org->id)->where('id', $memberId)->first();
+
+        if (!$member) {
+            // Fallback: try to find user by public_id and delete their membership
+            $user = User::where('public_id', $memberId)->first();
+            if ($user) {
+                $member = OrganizationMember::where('organization_id', $org->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+            }
+        }
+
+        // Cannot remove the owner
+        if ($member && $member->role === 'owner') {
+            return $this->respond(['message' => 'Cannot remove the organization owner.'], 403);
+        }
+
+        // Only owner can remove an admin
+        if ($member && $member->role === 'admin') {
+            $currentMember = OrganizationMember::where('organization_id', $org->id)
+                ->where('user_id', request()->user()->id)
+                ->first();
+            if ($currentMember?->role !== 'owner') {
+                return $this->respond(['message' => 'Only the owner can remove an admin.'], 403);
+            }
+        }
+
+        if ($member) {
+            $member->delete();
+        }
 
         return $this->respond(['message' => 'Member removed.']);
     }

@@ -69,7 +69,7 @@ export function CampaignDetailsPage() {
             <main className="flex-1 pb-20">
                 {/* Hero / Image */}
                 <div className="w-full h-[400px] relative bg-gray-100">
-                    <img src={campaign.image_url || `https://picsum.photos/seed/${id}/1200/400`} alt={campaign.title} className="w-full h-full object-cover" />
+                    <img src={campaign.images?.[0]?.url || `https://picsum.photos/seed/${id}/1200/400`} alt={campaign.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end">
                         <div className="container mx-auto px-4 pb-12">
                             <span className="inline-block px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">

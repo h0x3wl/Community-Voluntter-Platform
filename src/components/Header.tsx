@@ -38,19 +38,22 @@ export function Header() {
 
     return (
         <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
-            <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-                <Link to="/" className="flex items-center gap-2" onClick={scrollToTop}>
+            <div className="container mx-auto h-16 px-4 sm:px-6 lg:px-8 relative flex items-center justify-between">
+                {/* Left: Logo */}
+                <Link to="/" className="flex items-center gap-2 flex-shrink-0 z-10" onClick={scrollToTop}>
                     <Heart className="h-6 w-6 text-blue-600 fill-blue-600" />
                     <span className="text-xl font-bold tracking-tight text-gray-900">Awn عَوْن</span>
                 </Link>
 
-                <nav className="hidden md:flex gap-8">
+                {/* Center: Nav — absolutely centered */}
+                <nav className="hidden md:flex gap-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <Link to="/campaigns" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors" onClick={scrollToTop}>Our Causes</Link>
                     <Link to="/volunteer" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors" onClick={scrollToTop}>Get Involved</Link>
                     <Link to="/contact" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors" onClick={scrollToTop}>Contact</Link>
                 </nav>
 
-                <div className="flex items-center gap-4">
+                {/* Right: Buttons */}
+                <div className="flex items-center gap-3 flex-shrink-0 z-10">
                     {isLoggedIn ? (
                         <>
                             <Link to={getDashboardLink()} onClick={scrollToTop}>

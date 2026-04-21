@@ -27,7 +27,10 @@ export function AdminDonorsPage() {
                     api.getOrgDonors(orgId).catch(() => null),
                     api.getOrgOverview(orgId).catch(() => null)
                 ])
-                if (donorRes?.data) setDonors(Array.isArray(donorRes.data) ? donorRes.data : [])
+                if (donorRes?.data) {
+                    const donorData = donorRes.data.recent_donors || donorRes.data;
+                    setDonors(Array.isArray(donorData) ? donorData : [])
+                }
                 if (overRes?.data) setOverview(overRes.data)
             } catch (err) {
                 console.error("Failed to fetch donor page data", err)

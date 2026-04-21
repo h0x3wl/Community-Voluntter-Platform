@@ -42,8 +42,9 @@ export function AdminFinancePage() {
     const totalRevenue = finance?.monthly_totals
         ? finance.monthly_totals.reduce((acc: number, m: any) => acc + (m.amount_cents || 0), 0) / 100
         : 0
-    const totalDonors = donors?.recent_donors?.length || 0
-    const avgDonation = totalDonors > 0 ? totalRevenue / totalDonors : 0
+    const totalDonors = donors?.total_count || 0
+    const totalAmountCents = donors?.total_amount_cents || 0
+    const avgDonation = totalDonors > 0 ? (totalAmountCents / 100) / totalDonors : 0
     const monthlyData = finance?.monthly_totals || []
     const topCampaigns = finance?.top_campaigns || []
 
@@ -70,7 +71,7 @@ export function AdminFinancePage() {
     // Build transactions from recent donors
     const transactions = donors?.recent_donors?.slice(0, 6)?.map((d: any, i: number) => ({
         id: `#TRX-${1000 + i}`,
-        name: d.name || "Anonymous",
+        name: d.donor_name || "Anonymous",
         date: d.last_donated_at ? new Date(d.last_donated_at).toLocaleDateString() : "—",
         campaign: d.campaign || "General",
         amount: (d.total_cents || 0) / 100,

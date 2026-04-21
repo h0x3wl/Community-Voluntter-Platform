@@ -73,7 +73,7 @@ export function AllCampaignsPage() {
                                 <div key={campaign.public_id || i} className={`bg-white rounded-2xl border ${campaign.is_urgent ? 'border-red-500 shadow-red-500/10' : 'border-gray-100'} shadow-sm overflow-hidden hover:shadow-lg transition-shadow group flex flex-col`}>
                                     <Link to={`/campaigns/${campaign.share_slug || campaign.public_id || i}`} className="h-48 relative overflow-hidden block">
                                         <img 
-                                            src={campaign.image_url || `https://picsum.photos/seed/${campaign.public_id || i}/400/300`} 
+                                            src={campaign.images?.[0]?.url || `https://picsum.photos/seed/${campaign.public_id || i}/400/300`} 
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                             alt={campaign.title} 
                                         />

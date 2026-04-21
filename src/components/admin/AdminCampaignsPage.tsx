@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { api } from "../../lib/api"
 import { useCurrentUser } from "../../hooks/useCurrentUser"
+import { Link } from "react-router-dom"
 
 export function AdminCampaignsPage() {
     const { orgId } = useCurrentUser()
@@ -240,16 +241,16 @@ export function AdminCampaignsPage() {
                         
                         return (
                             <div key={camp.public_id || i} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col group">
-                                <div className="h-40 relative overflow-hidden bg-gray-100 flex items-center justify-center">
+                                <Link to={`/campaigns/${camp.share_slug || camp.public_id}`} className="h-40 relative overflow-hidden bg-gray-100 flex items-center justify-center block">
                                     <img
-                                        src={camp.image_url || `https://picsum.photos/seed/${camp.public_id || i}/400/300`}
+                                        src={camp.images?.[0]?.url || `https://picsum.photos/seed/${camp.public_id || i}/400/300`}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         alt={camp.title}
                                     />
                                     <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide shadow-sm ${badgeColor}`}>
                                         {camp.status || "active"}
                                     </span>
-                                </div>
+                                </Link>
                                 <div className="p-5 flex-1 flex flex-col">
                                     <div className="flex justify-between items-start mb-2 gap-2">
                                         <h3 className="font-bold text-gray-900 line-clamp-1 flex-1" title={camp.title}>{camp.title}</h3>
@@ -359,8 +360,8 @@ export function AdminCampaignsPage() {
                                                 <img src={URL.createObjectURL(campaignImageFile)} alt="Preview" className="w-full h-32 object-cover rounded-lg opacity-90" />
                                                 <span className="text-xs text-green-600 font-semibold mt-1">{campaignImageFile.name}</span>
                                             </div>
-                                        ) : editingCampaign?.image_url ? (
-                                            <img src={editingCampaign.image_url} alt="Cover" className="w-full h-full object-cover opacity-80 mix-blend-multiply" />
+                                        ) : editingCampaign?.images?.[0]?.url ? (
+                                            <img src={editingCampaign.images[0].url} alt="Cover" className="w-full h-full object-cover opacity-80 mix-blend-multiply" />
                                         ) : (
                                             <>
                                                 <ImageIcon className="w-8 h-8 mb-2 opacity-50" />

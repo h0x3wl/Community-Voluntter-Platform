@@ -110,6 +110,11 @@ export const api = {
   deleteOrgCampaign: (orgId: string, campaignId: string) => fetchApi(`/orgs/${orgId}/campaigns/${campaignId}`, { method: 'DELETE' }),
   uploadCampaignImage: (orgId: string, campaignId: string, formData: FormData) => fetchApi(`/orgs/${orgId}/campaigns/${campaignId}/images`, { method: 'POST', body: formData }),
   getOrgTeam: (orgId: string) => fetchApi(`/orgs/${orgId}/members`, { method: 'GET' }),
+  inviteOrgMember: (orgId: string, data: any) => fetchApi(`/orgs/${orgId}/members/invite`, { method: 'POST', body: JSON.stringify(data) }),
+  removeOrgMember: (orgId: string, memberId: string | number) => fetchApi(`/orgs/${orgId}/members/${memberId}`, { method: 'DELETE' }),
+  updateOrgMemberRole: (orgId: string, memberId: string | number, data: any) => fetchApi(`/orgs/${orgId}/members/${memberId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  respondToOrgInvite: (notificationId: string, action: 'accept' | 'reject') => fetchApi(`/me/org-invites/${notificationId}/${action}`, { method: 'POST' }),
+  updateOrgAnnualGoal: (orgId: string, data: any) => fetchApi(`/orgs/${orgId}/annual-goal`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // --- Platform Admin ---
   getAdminCampaigns: (params?: string) => fetchApi(`/admin/campaigns${params ? '?' + params : ''}`, { method: 'GET' }),

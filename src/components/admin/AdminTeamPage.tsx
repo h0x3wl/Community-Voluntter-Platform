@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
-import { Search, UserPlus, MoreVertical, Shield, Mail, Phone, Calendar, X, CheckCircle2 } from "lucide-react"
+import { Search, UserPlus, Shield, Mail, Calendar, X, CheckCircle2, Trash2, Edit3 } from "lucide-react"
 import { api } from "../../lib/api"
 import { useCurrentUser } from "../../hooks/useCurrentUser"
 
 export function AdminTeamPage() {
-    const { orgId } = useCurrentUser()
+    const { orgId, user: currentUser } = useCurrentUser()
     const [team, setTeam] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isWizardOpen, setIsWizardOpen] = useState(false)
     const [wizardStatus, setWizardStatus] = useState<"idle" | "submitting" | "success" | "error">("idle")
     const [wizardError, setWizardError] = useState("")
     const [searchQuery, setSearchQuery] = useState("")
+
+    // Role edit state
+    const [editingMemberId, setEditingMemberId] = useState<string | number | null>(null)
+    const [editRole, setEditRole] = useState("")
+    const [editSaving, setEditSaving] = useState(false)
 
     const fetchTeam = async () => {
         try {
@@ -43,7 +48,7 @@ export function AdminTeamPage() {
             setTimeout(() => {
                 setIsWizardOpen(false)
                 setWizardStatus("idle")
-                fetchTeam() // Refresh team list
+                fetchTeam()
             }, 1500)
         } catch (err: any) {
             setWizardStatus("error")
@@ -51,20 +56,60 @@ export function AdminTeamPage() {
         }
     }
 
+    const handleRemoveMember = async (memberId: string | number) => {
+        if (!confirm("Are you sure you want to remove this member from the organization?")) return
+        try {
+            await api.removeOrgMember(orgId, memberId)
+            fetchTeam()
+        } catch (err: any) {
+            alert("Failed to remove member: " + (err?.message || "Unknown error"))
+        }
+    }
+
+    const handleUpdateRole = async (memberId: string | number, newRole: string) => {
+        setEditSaving(true)
+        try {
+            await api.updateOrgMemberRole(orgId, memberId, { role: newRole })
+            setEditingMemberId(null)
+            fetchTeam()
+        } catch (err: any) {
+            alert("Failed to update role: " + (err?.message || "Unknown error"))
+        } finally {
+            setEditSaving(false)
+        }
+    }
+
     const rolesMap: any = {
         'owner': { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Owner' },
         'admin': { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Admin' },
         'manager': { bg: 'bg-teal-100', text: 'text-teal-700', label: 'Manager' },
-        'editor': { bg: 'bg-green-100', text: 'text-green-700', label: 'Editor' },
-        'viewer': { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Viewer' }
     }
 
     const filteredTeam = team.filter((member: any) => {
         if (!searchQuery) return true
         const q = searchQuery.toLowerCase()
-        const name = `${member.user?.first_name || ""} ${member.user?.last_name || ""}`.toLowerCase()
-        return name.includes(q) || (member.user?.email || "").toLowerCase().includes(q)
+        const name = (member.name || "").toLowerCase()
+        return name.includes(q) || (member.email || "").toLowerCase().includes(q)
     })
+
+    // Determine current user's role within this org
+    const currentUserOrgRole = team.find((m: any) => m.public_id === currentUser?.public_id)?.role || 'manager'
+
+    // Role hierarchy: owner > admin > manager
+    const roleRank: any = { owner: 3, admin: 2, manager: 1 }
+
+    // Check if a member is the current logged-in user
+    const isCurrentUser = (member: any) => currentUser?.public_id === member.public_id
+
+    // Check if member is owner (cannot be removed or edited)
+    const isOwner = (member: any) => member.role === 'owner'
+
+    // Can only edit/remove members with a lower role rank
+    const canManage = (member: any) => {
+        if (isCurrentUser(member)) return false
+        if (isOwner(member)) return false
+        return (roleRank[currentUserOrgRole] || 0) > (roleRank[member.role] || 0)
+    }
 
     return (
         <div className="space-y-8 relative min-h-[400px]">
@@ -117,44 +162,81 @@ export function AdminTeamPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {filteredTeam.map((member: any, i: number) => {
-                        const roleStyle = rolesMap[member.role] || rolesMap['viewer']
+                        const roleStyle = rolesMap[member.role] || rolesMap['manager']
+                        const canEdit = canManage(member)
+                        const canRemove = canManage(member)
+                        const isEditing = editingMemberId === (member.id || member.public_id)
 
                         return (
                             <div key={member.id || i} className="border border-gray-100 rounded-xl p-5 hover:border-blue-100 hover:bg-blue-50/10 transition-colors">
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center font-bold text-gray-400">
-                                            {member.user?.avatar_url ? (
-                                                <img src={member.user.avatar_url} className="w-full h-full object-cover" alt="Avatar" />
-                                            ) : (
-                                                (member.user?.first_name?.[0] || "U")
-                                            )}
+                                            {(member.name?.[0] || "U")}
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-gray-900 leading-tight">
-                                                {member.user?.first_name} {member.user?.last_name}
+                                                {member.name || "Unknown"}
+                                                {isCurrentUser(member) && <span className="text-xs text-blue-500 ml-2">(You)</span>}
                                             </h3>
-                                            <span className={`inline-flex mt-1 items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${roleStyle.bg} ${roleStyle.text}`}>
-                                                {roleStyle.label}
-                                            </span>
+                                            {isEditing ? (
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <select
+                                                        value={editRole}
+                                                        onChange={(e) => setEditRole(e.target.value)}
+                                                        className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white"
+                                                    >
+                                                        <option value="admin">Admin</option>
+                                                        <option value="manager">Manager</option>
+                                                    </select>
+                                                    <button
+                                                        onClick={() => handleUpdateRole(member.id || member.public_id, editRole)}
+                                                        disabled={editSaving}
+                                                        className="text-[10px] font-bold px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                                                    >
+                                                        {editSaving ? '...' : 'Save'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setEditingMemberId(null)}
+                                                        className="text-[10px] font-bold px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${roleStyle.bg} ${roleStyle.text}`}>
+                                                        {roleStyle.label}
+                                                    </span>
+                                                    {canEdit && (
+                                                        <button
+                                                            onClick={() => { setEditingMemberId(member.id || member.public_id); setEditRole(member.role); }}
+                                                            className="text-gray-400 hover:text-blue-600 transition-colors"
+                                                            title="Edit role"
+                                                        >
+                                                            <Edit3 className="w-3 h-3" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    <button className="text-gray-400 hover:text-gray-600">
-                                        <MoreVertical className="w-4 h-4" />
-                                    </button>
+                                    {canRemove && (
+                                        <button 
+                                            className="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-lg hover:bg-red-50"
+                                            title="Remove member"
+                                            onClick={() => handleRemoveMember(member.id || member.public_id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="mt-4 space-y-2 text-sm text-gray-500">
                                     <div className="flex items-center gap-2">
                                         <Mail className="w-3.5 h-3.5" />
-                                        {member.user?.email || "No email"}
+                                        {member.email || "No email"}
                                     </div>
-                                    {member.user?.phone && (
-                                        <div className="flex items-center gap-2">
-                                            <Phone className="w-3.5 h-3.5" />
-                                            {member.user.phone}
-                                        </div>
-                                    )}
                                     <div className="flex items-center gap-2 text-xs text-gray-400 border-t border-gray-50 pt-2 mt-2">
                                         <Calendar className="w-3.5 h-3.5" />
                                         Joined {new Date(member.joined_at || member.created_at || Date.now()).toLocaleDateString()}
@@ -176,7 +258,7 @@ export function AdminTeamPage() {
                                     <CheckCircle2 className="w-8 h-8" />
                                 </div>
                                 <h2 className="text-2xl font-bold text-gray-900">Invitation Sent!</h2>
-                                <p className="text-gray-500 mt-2">They will receive an email to join your organization.</p>
+                                <p className="text-gray-500 mt-2">They will receive a notification to join your organization.</p>
                             </div>
                         ) : (
                             <>
@@ -194,9 +276,8 @@ export function AdminTeamPage() {
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-gray-500 uppercase">Assign Role</label>
                                         <select name="role" required className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                            <option value="admin">Administrator (Full Access)</option>
-                                            <option value="editor">Editor (Can manage campaigns & donors)</option>
-                                            <option value="viewer">Viewer (Read-only access)</option>
+                                            <option value="admin">Admin — Full access to manage everything</option>
+                                            <option value="manager">Manager — Can manage campaigns & donors</option>
                                         </select>
                                     </div>
                                     {wizardError && (

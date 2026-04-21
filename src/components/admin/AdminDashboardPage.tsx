@@ -6,7 +6,10 @@ import {
     Users,
     Flag,
     DollarSign,
-    ArrowRight
+    ArrowRight,
+    Edit3,
+    X,
+    CheckCircle2
 } from "lucide-react"
 
 import { Link } from "react-router-dom"
@@ -20,6 +23,11 @@ export function AdminDashboardPage() {
     const [overview, setOverview] = useState<any>(null);
     const [finance, setFinance] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Annual goal editing
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+    const [goalInput, setGoalInput] = useState("");
+    const [goalSaving, setGoalSaving] = useState(false);
 
     useEffect(() => {
         if (!orgId) return;
@@ -43,7 +51,8 @@ export function AdminDashboardPage() {
     const totalDonations = (finance?.total_raised_cents || overview?.funds_raised_month || 0) / 100;
     const activeCampaigns = overview?.total_active_campaigns || 0;
     const activeDonors = overview?.active_donors || 0;
-    const growthPercent = overview?.funds_delta_percent != null ? Math.round(overview.funds_delta_percent) : 0;
+    const growthPercent = overview?.funds_delta_percent != null ? Math.round(overview.funds_delta_percent) : null;
+    const fundsThisMonth = (overview?.funds_raised_month || 0) / 100;
 
     const chartData = finance?.monthly_totals?.map((m: any) => ({
         name: m.month,
@@ -51,6 +60,30 @@ export function AdminDashboardPage() {
     })) || [];
 
     const topCampaigns = finance?.top_campaigns || [];
+
+    // Annual goal data
+    const annualGoalCents = overview?.annual_goal_cents || 0;
+    const annualRaisedCents = overview?.annual_raised_cents || 0;
+    const annualGoal = annualGoalCents / 100;
+    const annualRaised = annualRaisedCents / 100;
+    const annualProgress = annualGoalCents > 0 ? Math.min((annualRaisedCents / annualGoalCents) * 100, 100) : 0;
+
+    const handleSaveGoal = async () => {
+        const goalDollars = parseFloat(goalInput);
+        if (isNaN(goalDollars) || goalDollars < 0) return;
+        setGoalSaving(true);
+        try {
+            await api.updateOrgAnnualGoal(orgId, { annual_goal_cents: Math.round(goalDollars * 100) });
+            // refresh overview to get updated goal
+            const res = await api.getOrgOverview(orgId);
+            if (res?.data) setOverview(res.data);
+            setIsGoalModalOpen(false);
+        } catch (err: any) {
+            alert("Failed to update goal: " + (err?.message || "Unknown error"));
+        } finally {
+            setGoalSaving(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -90,8 +123,8 @@ export function AdminDashboardPage() {
                         <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
                             <DollarSign className="w-5 h-5" />
                         </div>
-                        <div className="bg-green-50 px-2 py-1 rounded-lg flex items-center text-xs font-bold text-green-700 gap-1">
-                            <TrendingUp className="w-3 h-3" /> {growthPercent > 0 ? '+' : ''}{growthPercent}%
+                        <div className={`${growthPercent !== null && growthPercent >= 0 ? 'bg-green-50' : 'bg-gray-100'} px-2 py-1 rounded-lg flex items-center text-xs font-bold ${growthPercent !== null && growthPercent >= 0 ? 'text-green-700' : 'text-gray-600'} gap-1`}>
+                            <TrendingUp className="w-3 h-3" /> {growthPercent !== null ? `${growthPercent > 0 ? '+' : ''}${growthPercent}%` : 'New'}
                         </div>
                     </div>
                     <div>
@@ -144,7 +177,9 @@ export function AdminDashboardPage() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-gray-500 mb-1">Monthly Growth</p>
-                        <h3 className="text-2xl font-bold text-gray-900">{growthPercent}%</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">
+                            {growthPercent !== null ? `${growthPercent > 0 ? '+' : ''}${growthPercent}%` : `$${fundsThisMonth.toLocaleString()}`}
+                        </h3>
                     </div>
                 </div>
             </div>
@@ -164,7 +199,7 @@ export function AdminDashboardPage() {
                             </div>
                             <div>
                                 <h3 className="text-right font-bold text-xl text-gray-900">${totalDonations.toLocaleString()}</h3>
-                                <p className="text-xs text-green-600 font-bold text-right">+{growthPercent}% vs last month</p>
+                                <p className="text-xs text-green-600 font-bold text-right">{growthPercent !== null ? `${growthPercent > 0 ? '+' : ''}${growthPercent}% vs last month` : 'Current period'}</p>
                             </div>
                         </div>
 
@@ -269,23 +304,44 @@ export function AdminDashboardPage() {
                 {/* Right: Goal & Quick Actions */}
                 <div className="space-y-6">
 
-                    {/* Annual Goal Card */}
+                    {/* Annual Goal Card - DYNAMIC */}
                     <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-xl shadow-blue-500/30 flex flex-col justify-between h-80 relative overflow-hidden">
                         {/* Decorative Background */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
-                        <div className="relative z-10">
-                            <p className="text-blue-100 text-sm font-medium mb-1">Annual Goal</p>
-                            <h3 className="text-4xl font-bold">85%</h3>
-                            <p className="text-xs text-blue-200 mt-1">Progress towards $1M</p>
+                        <div className="relative z-10 flex justify-between items-start">
+                            <div>
+                                <p className="text-blue-100 text-sm font-medium mb-1">Annual Goal</p>
+                                <h3 className="text-4xl font-bold">{annualGoalCents > 0 ? `${Math.round(annualProgress)}%` : '—'}</h3>
+                                <p className="text-xs text-blue-200 mt-1">
+                                    {annualGoalCents > 0
+                                        ? `$${annualRaised.toLocaleString()} of $${annualGoal.toLocaleString()}`
+                                        : 'No goal set yet'}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => { setGoalInput(String(annualGoal || '')); setIsGoalModalOpen(true); }}
+                                className="bg-white/20 hover:bg-white/30 transition-colors rounded-lg p-2 text-white"
+                                title="Edit annual goal"
+                            >
+                                <Edit3 className="w-4 h-4" />
+                            </button>
                         </div>
 
                         <div className="relative z-10 mt-auto">
                             <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden mb-4">
-                                <div className="h-full bg-white w-[85%]" />
+                                <div className="h-full bg-white transition-all duration-700" style={{ width: `${annualProgress}%` }} />
                             </div>
                             <p className="text-xs text-blue-100 leading-relaxed opacity-80">
-                                Excellent progress! You are on track to exceed your annual fundraising goal by end of Q4.
+                                {annualGoalCents === 0
+                                    ? 'Set an annual goal to track your fundraising progress throughout the year.'
+                                    : annualProgress >= 100
+                                        ? '🎉 Congratulations! You have reached your annual fundraising goal!'
+                                        : annualProgress >= 75
+                                            ? 'Excellent progress! You are on track to exceed your annual fundraising goal.'
+                                            : annualProgress >= 50
+                                                ? 'Great work! You are more than halfway to your annual goal.'
+                                                : 'Keep pushing! Every donation brings you closer to your annual target.'}
                             </p>
                         </div>
                     </div>
@@ -318,6 +374,45 @@ export function AdminDashboardPage() {
                 </div>
 
             </div>
+
+            {/* Edit Annual Goal Modal */}
+            {isGoalModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <h2 className="text-lg font-bold text-gray-900">Set Annual Goal</h2>
+                            <button onClick={() => setIsGoalModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-200">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Annual Fundraising Goal ($)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="100"
+                                    value={goalInput}
+                                    onChange={(e) => setGoalInput(e.target.value)}
+                                    placeholder="e.g. 100000"
+                                    className="flex h-12 w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-lg font-medium ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                />
+                                <p className="text-xs text-gray-400">This is your organization's target for the current calendar year.</p>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+                                <Button type="button" variant="ghost" onClick={() => setIsGoalModalOpen(false)}>Cancel</Button>
+                                <Button
+                                    onClick={handleSaveGoal}
+                                    className="bg-blue-600 hover:bg-blue-700 shadow-md font-bold"
+                                    disabled={goalSaving || !goalInput}
+                                >
+                                    {goalSaving ? 'Saving...' : 'Save Goal'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

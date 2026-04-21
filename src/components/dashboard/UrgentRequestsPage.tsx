@@ -74,7 +74,7 @@ export function UrgentRequestsPage() {
                         title={req.title}
                         description={req.description}
                         location={req.location}
-                        image={req.image_url || `https://picsum.photos/seed/${req.public_id || i}/500/300`}
+                        image={req.images?.[0]?.url || `https://picsum.photos/seed/${req.public_id || i}/500/300`}
                         deadline={req.days_left != null ? `Deadline: ${req.days_left} day${req.days_left !== 1 ? 's' : ''} left` : 'Ongoing campaign'}
                         timeLimit={req.days_left != null && req.days_left <= 3 ? "Critical Need" : "High Priority"}
                     />

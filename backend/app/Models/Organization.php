@@ -23,6 +23,7 @@ class Organization extends Model
         'lat',
         'lng',
         'status',
+        'annual_goal_cents',
         'tax_id',
         'license_number',
         'org_type',
@@ -41,7 +42,7 @@ class Organization extends Model
     public function members()
     {
         return $this->belongsToMany(User::class, 'organization_members')
-            ->withPivot(['role', 'invited_by_user_id', 'joined_at'])
+            ->withPivot(['id', 'role', 'invited_by_user_id', 'joined_at'])
             ->withTimestamps();
     }
 

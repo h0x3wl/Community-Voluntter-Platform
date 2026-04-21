@@ -10,7 +10,7 @@ class OrganizationInviteRequest extends FormRequest
     {
         return [
             'email' => ['required', 'email'],
-            'role' => ['required', 'in:admin,editor,viewer'],
+            'role' => ['required', 'in:admin,manager'],
         ];
     }
 
