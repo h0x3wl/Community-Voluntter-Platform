@@ -13,7 +13,7 @@ Before you begin, ensure you have the following installed on your machine:
 
 ---
 
-## 🛠️ Getting Started (Backend - Laravel)
+## Getting Started (Backend - Laravel)
 
 The backend is located in the `backend/` directory.
 
@@ -70,7 +70,7 @@ The backend is located in the `backend/` directory.
 
 ---
 
-## 💻 Getting Started (Frontend - React)
+## Getting Started (Frontend - React)
 
 The frontend is located at the root of the project. Open a new terminal tab to run these commands so the backend can keep running.
 
@@ -92,6 +92,6 @@ The frontend is located at the root of the project. Open a new terminal tab to r
 
 ---
 
-## 🚀 Usage
+## Usage
 
 You can now visit the Vite development server URL in your browser to view the application interactively! Make sure *both* the backend server (`php artisan serve`) and the frontend server (`npm run dev`) are running simultaneously.
