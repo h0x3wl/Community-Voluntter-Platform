@@ -17,19 +17,31 @@ class OrgItemRequestController extends ApiController
         $org = Organization::where('public_id', $request->input('organization_public_id'))
             ->orWhere('id', $request->input('organization_id'))
             ->firstOrFail();
-        $this->authorize('manageCampaigns', $org);
 
-        $request = ItemRequest::create([
+        // Check user is a member of the org
+        $user = $request->user();
+        $isMember = $org->members()->where('users.id', $user->id)->exists();
+        if (!$isMember) {
+            return response()->json(['message' => 'You are not a member of this organization.'], 403);
+        }
+
+        // Auto-accept: item goes directly to storage
+        $itemRequest = ItemRequest::create([
             'public_id' => Str::uuid(),
             'item_listing_id' => $listing->id,
             'organization_id' => $org->id,
-            'requested_by_user_id' => $request->user()->id,
-            'status' => 'pending',
+            'requested_by_user_id' => $user->id,
+            'status' => 'accepted',
+            'decided_by' => $user->id,
+            'decided_at' => now(),
         ]);
 
+        // Mark the listing as claimed so it's no longer available
+        $listing->update(['status' => 'claimed']);
+
         return $this->respond([
-            'public_id' => $request->public_id,
-            'status' => $request->status,
+            'public_id' => $itemRequest->public_id,
+            'status' => $itemRequest->status,
         ]);
     }
 
@@ -67,7 +79,12 @@ class OrgItemRequestController extends ApiController
     private function updateStatus(string $publicId, string $requestPublicId, string $status)
     {
         $org = Organization::where('public_id', $publicId)->firstOrFail();
-        $this->authorize('manageCampaigns', $org);
+        
+        $user = request()->user();
+        $isMember = $org->members()->where('users.id', $user->id)->exists();
+        if (!$isMember) {
+            return response()->json(['message' => 'You are not a member of this organization.'], 403);
+        }
 
         $request = ItemRequest::where('public_id', $requestPublicId)
             ->where('organization_id', $org->id)
@@ -75,7 +92,7 @@ class OrgItemRequestController extends ApiController
 
         $request->update([
             'status' => $status,
-            'decided_by' => request()->user()->id,
+            'decided_by' => $user->id,
             'decided_at' => now(),
         ]);
 

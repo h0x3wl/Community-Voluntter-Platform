@@ -129,4 +129,21 @@ export const api = {
 
   getAdminUsers: (params?: string) => fetchApi(`/admin/users${params ? '?' + params : ''}`, { method: 'GET' }),
   deleteAdminUser: (id: string) => fetchApi(`/admin/users/${id}`, { method: 'DELETE' }),
+
+  // --- Items / Clothing Donations ---
+  createItemListing: (formData: FormData) => fetchApi('/items', { method: 'POST', body: formData }),
+  getItems: () => fetchApi('/items', { method: 'GET' }),
+  getMyItems: () => fetchApi('/me/items', { method: 'GET' }),
+  
+  // --- Org Available Items & Storage ---
+  getOrgAvailableItems: (orgId: string) => fetchApi(`/orgs/${orgId}/available-items`, { method: 'GET' }),
+  getOrgStorage: (orgId: string) => fetchApi(`/orgs/${orgId}/storage`, { method: 'GET' }),
+  requestItem: (itemPublicId: string, orgPublicId: string) => fetchApi(`/items/${itemPublicId}/request`, { method: 'POST', body: JSON.stringify({ organization_public_id: orgPublicId }) }),
+  getOrgItemRequests: (orgId: string) => fetchApi(`/orgs/${orgId}/item-requests`, { method: 'GET' }),
+  acceptItemRequest: (orgId: string, requestId: string) => fetchApi(`/orgs/${orgId}/item-requests/${requestId}/accept`, { method: 'POST' }),
+  rejectItemRequest: (orgId: string, requestId: string) => fetchApi(`/orgs/${orgId}/item-requests/${requestId}/reject`, { method: 'POST' }),
+  markItemDelivered: (orgId: string, requestId: string) => fetchApi(`/orgs/${orgId}/item-requests/${requestId}/mark-delivered`, { method: 'POST' }),
+
+  // --- Active Organizations (for donation target dropdown) ---
+  getActiveOrganizations: () => fetchApi('/organizations/active', { method: 'GET' }),
 };

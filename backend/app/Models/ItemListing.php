@@ -12,10 +12,13 @@ class ItemListing extends Model
     protected $fillable = [
         'public_id',
         'donor_user_id',
+        'target_organization_id',
         'category_id',
         'title',
         'description',
         'condition',
+        'ai_category',
+        'ai_confidence',
         'location_text',
         'lat',
         'lng',
@@ -29,6 +32,7 @@ class ItemListing extends Model
         return [
             'lat' => 'float',
             'lng' => 'float',
+            'ai_confidence' => 'float',
             'approved_at' => 'datetime',
         ];
     }
@@ -46,5 +50,10 @@ class ItemListing extends Model
     public function requests()
     {
         return $this->hasMany(ItemRequest::class);
+    }
+
+    public function targetOrganization()
+    {
+        return $this->belongsTo(Organization::class, 'target_organization_id');
     }
 }

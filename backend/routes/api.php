@@ -69,6 +69,15 @@ Route::prefix('v1')->group(function () {
     Route::post('/newsletter', [NewsletterController::class, 'subscribe']);
     Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
+    // Public: list active organizations (for donation target dropdown)
+    Route::get('/organizations/active', function () {
+        $orgs = \App\Models\Organization::where('status', 'approved')
+            ->select(['public_id', 'name', 'logo_url', 'city', 'country', 'description'])
+            ->orderBy('name')
+            ->get();
+        return response()->json(['data' => $orgs]);
+    });
+
     // Donation routes need auth:sanctum so $request->user() resolves the logged-in user
     // for linking donor_user_id, XP tracking, and donation history
     Route::middleware('auth:sanctum')->group(function () {
@@ -138,6 +147,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/orgs/{org_public_id}/item-requests/{request_public_id}/accept', [OrgItemRequestController::class, 'accept']);
         Route::post('/orgs/{org_public_id}/item-requests/{request_public_id}/reject', [OrgItemRequestController::class, 'reject']);
         Route::post('/orgs/{org_public_id}/item-requests/{request_public_id}/mark-delivered', [OrgItemRequestController::class, 'markDelivered']);
+
+        // Organization Clothing / Item browsing
+        Route::get('/orgs/{org_public_id}/available-items', [ItemController::class, 'availableForOrg']);
+        Route::get('/orgs/{org_public_id}/storage', [ItemController::class, 'orgStorage']);
 
         Route::middleware('platform_admin')->prefix('admin')->group(function () {
             Route::get('/campaigns', [AdminCampaignController::class, 'index']);

@@ -1,7 +1,7 @@
 import {
     LayoutDashboard,
     HeartHandshake,
-    Sparkles,
+    Shirt,
     AlertCircle,
     FileText,
     Trophy,
@@ -24,7 +24,7 @@ import { api } from "../../lib/api"
 const sidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/user" },
     { icon: HeartHandshake, label: "My Donations", href: "/user/donations" },
-    { icon: Sparkles, label: "AI Analysis", href: "/user/analysis" },
+    { icon: Shirt, label: "Donate Clothes", href: "/user/analysis" },
     // { icon: AlertCircle, label: "Urgent Requests", href: "/user/urgent" },
     // { icon: FileText, label: "Applications", href: "/user/applications" },
     { icon: Trophy, label: "Leaderboard", href: "/user/leaderboard" },

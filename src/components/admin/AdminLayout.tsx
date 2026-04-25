@@ -10,7 +10,8 @@ import {
     Building,
     Home,
     AlertTriangle,
-    CheckCircle2
+    CheckCircle2,
+    Shirt
 } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate, Navigate } from "react-router-dom"
 import { useState, useEffect } from "react"
@@ -23,6 +24,7 @@ const sidebarItems = [
     { icon: PieChart, label: "Finance", href: "/org/finance" },
     { icon: Users, label: "Donors", href: "/org/donors" },
     { icon: Megaphone, label: "Campaigns", href: "/org/campaigns" },
+    { icon: Shirt, label: "Clothes", href: "/org/clothes" },
     { icon: Building, label: "Team", href: "/org/team" },
     { icon: Settings, label: "Settings", href: "/org/settings" },
 ]
@@ -65,7 +67,7 @@ export function AdminLayout() {
                 console.error("Failed to fetch user for org layout", err)
                 const cached = localStorage.getItem("user")
                 if (cached) {
-                    try { setUser(JSON.parse(cached)) } catch {}
+                    try { setUser(JSON.parse(cached)) } catch { }
                 }
             } finally {
                 setIsLoading(false)
@@ -106,7 +108,7 @@ export function AdminLayout() {
         try {
             await api.markNotificationsRead()
             setUnreadCount(0)
-            setNotifications(notifications.map(n => ({...n, read_at: new Date().toISOString()})))
+            setNotifications(notifications.map(n => ({ ...n, read_at: new Date().toISOString() })))
         } catch (e) {
             console.error(e)
         }
@@ -248,7 +250,7 @@ export function AdminLayout() {
                             </div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Organization Review Pending</h2>
                             <p className="text-gray-500 max-w-md mx-auto">
-                                Your organization account is currently under review by our platform administrators. 
+                                Your organization account is currently under review by our platform administrators.
                                 You will have full access to dashboard features once approved.
                             </p>
                         </div>
