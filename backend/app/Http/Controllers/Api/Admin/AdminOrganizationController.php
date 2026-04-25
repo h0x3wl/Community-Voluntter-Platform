@@ -34,6 +34,12 @@ class AdminOrganizationController extends ApiController
             'city' => $org->city,
             'country' => $org->country,
             'status' => $org->status,
+            'tax_id' => $org->tax_id,
+            'license_number' => $org->license_number,
+            'org_type' => $org->org_type,
+            'authorized_rep_name' => $org->authorized_rep_name,
+            'authorized_rep_id' => $org->authorized_rep_id,
+            'legal_document' => $org->legal_document,
             'campaigns_count' => $org->campaigns_count,
             'members_count' => $org->members_count,
             'created_at' => $org->created_at,
@@ -52,6 +58,7 @@ class AdminOrganizationController extends ApiController
 
         $org->update(request()->only([
             'name', 'description', 'status', 'website', 'phone', 'city', 'country',
+            'org_type', 'tax_id', 'license_number', 'authorized_rep_name', 'authorized_rep_id',
         ]));
 
         return $this->respond([

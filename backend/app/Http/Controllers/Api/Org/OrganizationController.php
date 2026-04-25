@@ -16,7 +16,15 @@ class OrganizationController extends ApiController
 {
     public function store(OrganizationStoreRequest $request)
     {
-        $org = Organization::create(array_merge($request->validated(), [
+        $data = collect($request->validated())->except('legal_document')->toArray();
+
+        // Handle legal document upload
+        if ($request->hasFile('legal_document')) {
+            $path = $request->file('legal_document')->store('organizations/legal_docs', 'public');
+            $data['legal_document'] = '/storage/' . $path;
+        }
+
+        $org = Organization::create(array_merge($data, [
             'public_id' => Str::uuid(),
             'status' => 'pending',
         ]));

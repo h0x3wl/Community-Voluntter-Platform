@@ -20,6 +20,9 @@ class OrganizationStoreRequest extends FormRequest
             'tax_id' => ['nullable', 'string', 'max:100'],
             'license_number' => ['nullable', 'string', 'max:100'],
             'org_type' => ['nullable', 'string', 'in:ngo,foundation,social_enterprise,cooperative,charity,other'],
+            'authorized_rep_name' => ['nullable', 'string', 'max:255'],
+            'authorized_rep_id' => ['nullable', 'string', 'max:100'],
+            'legal_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
         ];
     }
 

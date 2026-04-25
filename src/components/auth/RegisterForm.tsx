@@ -2,7 +2,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Eye, EyeOff, HandHeart, Building2 } from "lucide-react"
+import { Eye, EyeOff, HandHeart, Building2, Upload, UserCheck, X, FileText } from "lucide-react"
 import { cn } from "../../lib/utils"
 import { api } from "../../lib/api"
 
@@ -30,6 +30,11 @@ export function RegisterForm() {
     const [orgCity, setOrgCity] = useState("")
     const [orgCountry, setOrgCountry] = useState("")
 
+    // Legal documentation & authorized representative
+    const [legalDocument, setLegalDocument] = useState<File | null>(null)
+    const [authorizedRepName, setAuthorizedRepName] = useState("")
+    const [authorizedRepId, setAuthorizedRepId] = useState("")
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
         setErrorMsg("")
@@ -55,6 +60,21 @@ export function RegisterForm() {
             }
             if (!orgPhone.trim()) {
                 setErrorMsg("Organization phone number is required.")
+                setIsLoading(false)
+                return
+            }
+            if (!authorizedRepName.trim()) {
+                setErrorMsg("Authorized representative name is required.")
+                setIsLoading(false)
+                return
+            }
+            if (!authorizedRepId.trim()) {
+                setErrorMsg("Authorized representative ID is required.")
+                setIsLoading(false)
+                return
+            }
+            if (!legalDocument) {
+                setErrorMsg("Legal documentation is required for organization verification.")
                 setIsLoading(false)
                 return
             }
@@ -85,19 +105,23 @@ export function RegisterForm() {
                         }
 
                         const slug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
-                        await api.createOrganization({
-                            name: orgName,
-                            slug: slug || `org-${Date.now()}`,
-                            description: "",
-                            website: formattedWebsite || null,
-                            phone: orgPhone || null,
-                            address: orgAddress || null,
-                            city: orgCity || null,
-                            country: orgCountry || null,
-                            tax_id: taxId || null,
-                            license_number: licenseNumber || null,
-                            org_type: orgType || null,
-                        })
+                        const formData = new FormData()
+                        formData.append('name', orgName)
+                        formData.append('slug', slug || `org-${Date.now()}`)
+                        formData.append('description', '')
+                        if (formattedWebsite) formData.append('website', formattedWebsite)
+                        if (orgPhone) formData.append('phone', orgPhone)
+                        if (orgAddress) formData.append('address', orgAddress)
+                        if (orgCity) formData.append('city', orgCity)
+                        if (orgCountry) formData.append('country', orgCountry)
+                        if (taxId) formData.append('tax_id', taxId)
+                        if (licenseNumber) formData.append('license_number', licenseNumber)
+                        if (orgType) formData.append('org_type', orgType)
+                        if (authorizedRepName) formData.append('authorized_rep_name', authorizedRepName)
+                        if (authorizedRepId) formData.append('authorized_rep_id', authorizedRepId)
+                        if (legalDocument) formData.append('legal_document', legalDocument)
+
+                        await api.createOrganization(formData)
 
                         // Refresh the user data to get the new org_public_id
                         try {
@@ -314,7 +338,7 @@ export function RegisterForm() {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700">License Number</label>
                                 <Input
-                                    placeholder="Optional"
+                                    placeholder="e.g. LIC-2024-00123"
                                     className="h-12 bg-white border-gray-200 rounded-xl"
                                     value={licenseNumber}
                                     onChange={(e) => setLicenseNumber(e.target.value)}
@@ -374,6 +398,91 @@ export function RegisterForm() {
                                     onChange={(e) => setOrgCountry(e.target.value)}
                                 />
                             </div>
+                        </div>
+
+                        {/* Authorized Representative */}
+                        <div className="space-y-3 pt-3 border-t border-blue-200">
+                            <div className="flex items-center gap-2">
+                                <UserCheck className="w-4 h-4 text-blue-600" />
+                                <h4 className="text-sm font-semibold text-blue-900">Authorized Representative</h4>
+                            </div>
+                            <p className="text-xs text-blue-600 -mt-1">
+                                The person legally responsible for the organization.
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">Full Name <span className="text-red-400">*</span></label>
+                                    <Input
+                                        placeholder="e.g. Ahmed Ali"
+                                        className="h-12 bg-white border-gray-200 rounded-xl"
+                                        value={authorizedRepName}
+                                        onChange={(e) => setAuthorizedRepName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">National / Passport ID <span className="text-red-400">*</span></label>
+                                    <Input
+                                        placeholder="e.g. 29901011234567"
+                                        className="h-12 bg-white border-gray-200 rounded-xl"
+                                        value={authorizedRepId}
+                                        onChange={(e) => setAuthorizedRepId(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Legal Documentation Upload */}
+                        <div className="space-y-3 pt-3 border-t border-blue-200">
+                            <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-blue-600" />
+                                <h4 className="text-sm font-semibold text-blue-900">Legal Documentation <span className="text-red-400">*</span></h4>
+                            </div>
+                            <p className="text-xs text-blue-600 -mt-1">
+                                Upload a registration certificate, license, or legal proof (PDF, JPG, PNG, DOC — max 10MB).
+                            </p>
+                            {!legalDocument ? (
+                                <label
+                                    htmlFor="legalDocUpload"
+                                    className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-blue-200 rounded-xl bg-white hover:border-blue-400 hover:bg-blue-50/50 transition-colors cursor-pointer"
+                                >
+                                    <Upload className="w-8 h-8 text-blue-400" />
+                                    <span className="text-sm font-medium text-blue-600">Click to upload document</span>
+                                    <span className="text-xs text-gray-400">PDF, JPG, PNG, DOC up to 10MB</span>
+                                    <input
+                                        id="legalDocUpload"
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0]
+                                            if (file) {
+                                                if (file.size > 10 * 1024 * 1024) {
+                                                    setErrorMsg("Legal document must be under 10MB.")
+                                                    return
+                                                }
+                                                setLegalDocument(file)
+                                            }
+                                        }}
+                                    />
+                                </label>
+                            ) : (
+                                <div className="flex items-center gap-3 p-3 bg-white border border-blue-200 rounded-xl">
+                                    <FileText className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-800 truncate">{legalDocument.name}</p>
+                                        <p className="text-xs text-gray-400">{(legalDocument.size / 1024).toFixed(1)} KB</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLegalDocument(null)}
+                                        className="p-1 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

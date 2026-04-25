@@ -95,7 +95,7 @@ export const api = {
   subscribeNewsletter: (email: string) => fetchApi('/newsletter', { method: 'POST', body: JSON.stringify({ email }) }),
 
   // --- Organization ---
-  createOrganization: (data: any) => fetchApi('/orgs', { method: 'POST', body: JSON.stringify(data) }),
+  createOrganization: (data: FormData) => fetchApi('/orgs', { method: 'POST', body: data }),
   getOrg: (orgId: string) => fetchApi(`/orgs/${orgId}`, { method: 'GET' }),
   updateOrg: (orgId: string, data: any) => fetchApi(`/orgs/${orgId}`, { method: 'PUT', body: JSON.stringify(data) }),
   uploadOrgLogo: (orgId: string, formData: FormData) => fetchApi(`/orgs/${orgId}/logo`, { method: 'POST', body: formData }),

@@ -29,6 +29,9 @@ class Organization extends Model
         'org_type',
         'verification_status',
         'verified_at',
+        'authorized_rep_name',
+        'authorized_rep_id',
+        'legal_document',
     ];
 
     protected function casts(): array
