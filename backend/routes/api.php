@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\User\UserApplicationController;
 use App\Http\Controllers\Api\User\UserDonationController;
 use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\OrgInviteResponseController;
+use App\Http\Controllers\Api\User\UserItemController;
 use App\Http\Controllers\Api\BadgeController;
 use Illuminate\Support\Facades\Route;
 
