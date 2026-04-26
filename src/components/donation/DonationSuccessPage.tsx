@@ -145,7 +145,39 @@ export function DonationSuccessPage() {
                             Return to Dashboard
                         </Button>
                     </Link>
-                    <Button variant="outline" className="w-full font-semibold text-gray-700 border-gray-200 hover:bg-gray-50">
+                    <Button
+                        variant="outline"
+                        className="w-full font-semibold text-gray-700 border-gray-200 hover:bg-gray-50"
+                        onClick={() => {
+                            const receiptWindow = window.open('', '_blank', 'width=600,height=700');
+                            if (!receiptWindow) return;
+                            receiptWindow.document.write(`
+                                <html><head><title>Donation Receipt</title>
+                                <style>
+                                    body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; color: #1a1a1a; }
+                                    .header { text-align: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 20px; }
+                                    .header h1 { font-size: 22px; margin: 0 0 4px; }
+                                    .header p { color: #6b7280; font-size: 13px; margin: 0; }
+                                    .amount { text-align: center; font-size: 36px; font-weight: 800; margin: 24px 0; color: #2563eb; }
+                                    .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+                                    .row .label { color: #6b7280; } .row .value { font-weight: 600; }
+                                    .footer { text-align: center; margin-top: 30px; font-size: 11px; color: #9ca3af; }
+                                    @media print { body { margin: 0; } }
+                                </style></head><body>
+                                <div class="header"><h1>Awn Platform</h1><p>Donation Receipt</p></div>
+                                <div class="amount">${amountFormatted}</div>
+                                <div class="row"><span class="label">Date</span><span class="value">${date}</span></div>
+                                <div class="row"><span class="label">Time</span><span class="value">${time}</span></div>
+                                <div class="row"><span class="label">Confirmation ID</span><span class="value">${confirmationId}</span></div>
+                                <div class="row"><span class="label">Campaign</span><span class="value">${campaignName}</span></div>
+                                <div class="row"><span class="label">Status</span><span class="value" style="color:#16a34a">Completed</span></div>
+                                <div class="footer"><p>Thank you for your generous contribution.</p><p>© 2026 Awn. Together for a better world.</p></div>
+                                <script>window.print();</script>
+                                </body></html>
+                            `);
+                            receiptWindow.document.close();
+                        }}
+                    >
                         <FileText className="w-4 h-4 mr-2" /> View Receipt
                     </Button>
                 </div>

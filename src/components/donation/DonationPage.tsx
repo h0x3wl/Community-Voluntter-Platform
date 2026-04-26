@@ -4,47 +4,50 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Check, ChevronRight, Info, Search, CreditCard, Lock, ShieldCheck, Receipt, AlertCircle } from "lucide-react"
 import { api } from "../../lib/api"
+import { loadStripe } from "@stripe/stripe-js"
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
+
+const STRIPE_PK = import.meta.env.VITE_STRIPE_PK || ""
+const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null
+
+const CARD_ELEMENT_OPTIONS = {
+    hidePostalCode: true,
+    style: {
+        base: {
+            fontSize: '16px',
+            color: '#1f2937',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            '::placeholder': { color: '#9ca3af' },
+            padding: '12px',
+        },
+        invalid: { color: '#ef4444', iconColor: '#ef4444' },
+    },
+}
 
 /** Luhn algorithm – validates credit card numbers client-side */
 function luhnCheck(value: string): boolean {
     const digits = value.replace(/\D/g, "")
     if (digits.length < 13 || digits.length > 19) return false
-
     let sum = 0
     let alt = false
     for (let i = digits.length - 1; i >= 0; i--) {
         let n = parseInt(digits[i], 10)
-        if (alt) {
-            n *= 2
-            if (n > 9) n -= 9
-        }
+        if (alt) { n *= 2; if (n > 9) n -= 9 }
         sum += n
         alt = !alt
     }
     return sum % 10 === 0
 }
 
-/** Format card number with spaces every 4 digits */
 function formatCardNumber(value: string): string {
     const digits = value.replace(/\D/g, "").slice(0, 16)
     return digits.replace(/(.{4})/g, "$1 ").trim()
 }
 
-/** Format expiry as MM / YY */
 function formatExpiry(value: string): string {
     const digits = value.replace(/\D/g, "").slice(0, 4)
     if (digits.length >= 3) return digits.slice(0, 2) + " / " + digits.slice(2)
     return digits
-}
-
-/** Detect card brand from first digits */
-function detectCardBrand(number: string): string {
-    const digits = number.replace(/\D/g, "")
-    if (/^4/.test(digits)) return "VISA"
-    if (/^5[1-5]/.test(digits)) return "MC"
-    if (/^3[47]/.test(digits)) return "AMEX"
-    if (/^6(?:011|5)/.test(digits)) return "DISC"
-    return ""
 }
 
 interface Campaign {
@@ -54,7 +57,7 @@ interface Campaign {
     status: string
 }
 
-export function DonationPage() {
+function DonationPageInner({ stripe, elements }: { stripe?: any; elements?: any }) {
     const [searchParams] = useSearchParams()
     const initialAmount = Number(searchParams.get("amount")) || 10
 
@@ -63,7 +66,7 @@ export function DonationPage() {
     const [step, setStep] = useState(1)
     const navigate = useNavigate()
 
-    // Card fields (controlled)
+    // Card fields
     const [cardNumber, setCardNumber] = useState("")
     const [cardExpiry, setCardExpiry] = useState("")
     const [cardCvv, setCardCvv] = useState("")
@@ -117,28 +120,6 @@ export function DonationPage() {
         setSelectedAmount(null)
     }
 
-    const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const formatted = formatCardNumber(e.target.value)
-        setCardNumber(formatted)
-        setCardError("")
-
-        // Validate in real-time after the user has typed enough digits
-        const raw = formatted.replace(/\s/g, "")
-        if (raw.length >= 13) {
-            if (!luhnCheck(raw)) {
-                setCardError("Invalid card number")
-            }
-        }
-    }
-
-    const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCardExpiry(formatExpiry(e.target.value))
-    }
-
-    const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const digits = e.target.value.replace(/\D/g, "").slice(0, 4)
-        setCardCvv(digits)
-    }
 
     const handleContinue = () => {
         if (step === 1) {
@@ -152,62 +133,81 @@ export function DonationPage() {
     }
 
     const handleSubmitPayment = async () => {
-        // Validate card fields
-        const rawCard = cardNumber.replace(/\s/g, "")
-        if (!luhnCheck(rawCard)) {
-            setCardError("Invalid card number. Please check and try again.")
-            return
-        }
-        if (!cardExpiry || cardExpiry.replace(/\D/g, "").length < 4) {
-            setFormError("Please enter a valid expiry date (MM / YY).")
-            return
-        }
-        if (!cardCvv || cardCvv.length < 3) {
-            setFormError("Please enter a valid CVV.")
-            return
-        }
         if (!cardholderName.trim()) {
             setFormError("Please enter the cardholder name.")
             return
         }
+        // Validate manual card fields in simulation mode
+        if (!useStripeElements) {
+            const rawCard = cardNumber.replace(/\s/g, "")
+            if (!luhnCheck(rawCard)) {
+                setCardError("Invalid card number. Please check and try again.")
+                return
+            }
+            if (!cardExpiry || cardExpiry.replace(/\D/g, "").length < 4) {
+                setFormError("Please enter a valid expiry date (MM / YY).")
+                return
+            }
+            if (!cardCvv || cardCvv.length < 3) {
+                setFormError("Please enter a valid CVV.")
+                return
+            }
+        }
 
         setFormError("")
         setCardError("")
-        setStep(3)
         setIsProcessing(true)
 
         try {
-            // Get the donor info from localStorage if logged in
             const userStr = localStorage.getItem("user")
             const user = userStr ? JSON.parse(userStr) : null
 
             const payload: any = {
                 amount: donationAmount,
                 currency: "USD",
-                card_number: rawCard,
-                card_expiry: cardExpiry,
-                card_cvv: cardCvv,
                 cardholder_name: cardholderName,
             }
-
-            if (selectedCampaignId) {
-                payload.campaign_id = selectedCampaignId
-            }
-
+            if (selectedCampaignId) payload.campaign_id = selectedCampaignId
             if (user) {
                 payload.donor_name = `${user.first_name || ""} ${user.last_name || ""}`.trim()
                 payload.donor_email = user.email
             }
-
             payload.anonymous = isAnonymous
 
-            const response = await api.simulateDonation(payload)
+            if (stripe && elements && stripePromise) {
+                // --- Real Stripe flow ---
+                const intentRes = await api.createDonationIntent(payload)
+                const clientSecret = intentRes.data?.client_secret
+                const donationPublicId = intentRes.data?.donation?.public_id
+                if (!clientSecret) throw new Error("Failed to create payment intent.")
 
-            if (response.data?.donation) {
-                const donation = response.data.donation
-                navigate(`/donate/success?id=${donation.public_id}`)
+                const cardElement = elements.getElement(CardElement)
+                if (!cardElement) throw new Error("Card element not found.")
+
+                const { error } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: { name: cardholderName },
+                    },
+                })
+
+                if (error) {
+                    setCardError(error.message || "Payment failed.")
+                    setIsProcessing(false)
+                    return
+                }
+                navigate(`/donate/success?id=${donationPublicId}`)
             } else {
-                navigate("/donate/failure", { state: { error: "Unexpected response from server." } })
+                // --- Simulation fallback (no Stripe key) ---
+                payload.card_number = cardNumber.replace(/\s/g, "")
+                payload.card_expiry = cardExpiry
+                payload.card_cvv = cardCvv
+                const response = await api.simulateDonation(payload)
+                if (response.data?.donation) {
+                    navigate(`/donate/success?id=${response.data.donation.public_id}`)
+                } else {
+                    navigate("/donate/failure", { state: { error: "Unexpected response from server." } })
+                }
             }
         } catch (error: any) {
             const errorMsg = error.message || "Payment processing failed."
@@ -218,7 +218,9 @@ export function DonationPage() {
     }
 
     const donationAmount = selectedAmount || Number(customAmount) || 0
-    const cardBrand = detectCardBrand(cardNumber)
+    const useStripeElements = !!(stripe && elements && stripePromise)
+    // Move this before render so the submit handler can also reference it
+    // (useStripeElements is used in handleSubmitPayment via closure)
     const selectedCampaign = campaigns.find(c => c.public_id === selectedCampaignId)
 
     return (
@@ -380,56 +382,73 @@ export function DonationPage() {
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-lg font-bold text-gray-900">Card Information</h2>
                                     <div className="flex gap-2">
-                                        <div className={`px-2 py-1 rounded text-[10px] font-bold border ${cardBrand === "VISA" ? "bg-blue-50 text-blue-600 border-blue-200 ring-1 ring-blue-300" : "bg-blue-50 text-blue-600 border-blue-100"}`}>VISA</div>
-                                        <div className={`px-2 py-1 rounded text-[10px] font-bold border ${cardBrand === "MC" ? "bg-red-50 text-red-600 border-red-200 ring-1 ring-red-300" : "bg-red-50 text-red-600 border-red-100"}`}>MC</div>
+                                        <div className="px-2 py-1 rounded text-[10px] font-bold border bg-blue-50 text-blue-600 border-blue-100">VISA</div>
+                                        <div className="px-2 py-1 rounded text-[10px] font-bold border bg-red-50 text-red-600 border-red-100">MC</div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-6">
+                                    {/* Stripe Card Element */}
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Card Number</label>
-                                        <div className="relative">
-                                            <Input
-                                                placeholder="0000 0000 0000 0000"
-                                                value={cardNumber}
-                                                onChange={handleCardNumberChange}
-                                                className={`bg-gray-50 border-gray-200 focus:bg-white pl-4 pr-10 h-11 ${cardError ? "border-red-400 ring-1 ring-red-300" : ""}`}
-                                                maxLength={19}
-                                            />
-                                            <Lock className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
-                                        </div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Card Details</label>
+                                        {useStripeElements ? (
+                                            <div className={`bg-gray-50 border rounded-md p-3 transition-colors focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 ${cardError ? "border-red-400 ring-1 ring-red-300" : "border-gray-200"}`}>
+                                                <CardElement options={CARD_ELEMENT_OPTIONS} onChange={(e) => { setCardError(e.error?.message || "") }} />
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="bg-amber-50 border border-amber-200 rounded-md p-2.5 text-xs text-amber-700 flex items-center gap-2 mb-3">
+                                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                                    Simulation Mode — no real charges will be made.
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Card Number</label>
+                                                        <div className="relative">
+                                                            <Input
+                                                                placeholder="4242 4242 4242 4242"
+                                                                value={cardNumber}
+                                                                onChange={(e) => { setCardNumber(formatCardNumber(e.target.value)); setCardError("") }}
+                                                                className={`bg-gray-50 border-gray-200 focus:bg-white pl-4 pr-10 h-11 ${cardError ? "border-red-400 ring-1 ring-red-300" : ""}`}
+                                                                maxLength={19}
+                                                            />
+                                                            <Lock className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Expiry Date</label>
+                                                            <Input
+                                                                placeholder="MM / YY"
+                                                                value={cardExpiry}
+                                                                onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                                                                className="bg-gray-50 border-gray-200 focus:bg-white h-11"
+                                                                maxLength={7}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">CVV</label>
+                                                            <div className="relative">
+                                                                <Input
+                                                                    placeholder="123"
+                                                                    value={cardCvv}
+                                                                    onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                                                                    className="bg-gray-50 border-gray-200 focus:bg-white h-11"
+                                                                    maxLength={4}
+                                                                    type="password"
+                                                                />
+                                                                <Info className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 cursor-help" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
                                         {cardError && (
                                             <p className="text-xs text-red-500 flex items-center gap-1">
                                                 <AlertCircle className="w-3 h-3" /> {cardError}
                                             </p>
                                         )}
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Expiry Date</label>
-                                            <Input
-                                                placeholder="MM / YY"
-                                                value={cardExpiry}
-                                                onChange={handleExpiryChange}
-                                                className="bg-gray-50 border-gray-200 focus:bg-white h-11"
-                                                maxLength={7}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">CVV</label>
-                                            <div className="relative">
-                                                <Input
-                                                    placeholder="123"
-                                                    value={cardCvv}
-                                                    onChange={handleCvvChange}
-                                                    className="bg-gray-50 border-gray-200 focus:bg-white h-11"
-                                                    maxLength={4}
-                                                    type="password"
-                                                />
-                                                <Info className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 cursor-help" />
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <div className="space-y-2">
@@ -523,9 +542,18 @@ export function DonationPage() {
                                 <Button
                                     onClick={handleSubmitPayment}
                                     disabled={isProcessing}
-                                    className="w-full bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20 font-bold h-12 text-base mb-3 disabled:opacity-50"
+                                    className="w-full bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20 font-bold h-12 text-base mb-3 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                                 >
-                                    <Lock className="w-4 h-4 mr-2" /> Complete Donation
+                                    {isProcessing ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Lock className="w-4 h-4" /> Complete Donation
+                                        </>
+                                    )}
                                 </Button>
 
                                 <button
@@ -555,16 +583,7 @@ export function DonationPage() {
                     </div>
                 ) : null}
 
-                {/* STEP 3: Processing (Center Layout) */}
-                {step === 3 && (
-                    <div className="max-w-xl mx-auto bg-white rounded-2xl border border-gray-100 p-12 shadow-sm text-center">
-                        <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
-                        <h2 className="text-xl font-bold text-gray-900 mb-2">Processing Donation</h2>
-                        <p className="text-gray-500">
-                            Validating your card details and processing your ${donationAmount.toFixed(2)} contribution. Please do not close this window.
-                        </p>
-                    </div>
-                )}
+
 
                 {/* Footer Cards (Only on Step 1) */}
                 {step === 1 && campaigns.length >= 2 && (
@@ -597,4 +616,23 @@ export function DonationPage() {
             </div>
         </div>
     )
+}
+
+/** Small wrapper that extracts Stripe hooks and passes them as props */
+function StripeInnerWrapper() {
+    const stripe = useStripe()
+    const elements = useElements()
+    return <DonationPageInner stripe={stripe} elements={elements} />
+}
+
+/** Exported wrapper that provides Stripe context when a key is available */
+export function DonationPage() {
+    if (stripePromise) {
+        return (
+            <Elements stripe={stripePromise}>
+                <StripeInnerWrapper />
+            </Elements>
+        )
+    }
+    return <DonationPageInner />
 }

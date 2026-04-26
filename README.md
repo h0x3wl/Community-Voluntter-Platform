@@ -50,19 +50,26 @@ The backend is located in the `backend/` directory.
    DB_PASSWORD=your_database_password
    ```
 
-6. **Run Migrations (Create database tables)**:
+6. **Configure Stripe (Backend)**:
+   In the same `.env` file, add your Stripe test secret key and webhook secret (optional, for local webhook testing):
+   ```env
+   STRIPE_SECRET=sk_test_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+
+7. **Run Migrations (Create database tables)**:
    Make sure your database server is running and the database exists, then run:
    ```bash
    php artisan migrate
    ```
 
-7. **Link Storage**:
+8. **Link Storage**:
    To ensure file uploads work properly, create a symbolic link:
    ```bash
    php artisan storage:link
    ```
 
-8. **Start the Laravel Development Server**:
+9. **Start the Laravel Development Server**:
    ```bash
    php artisan serve
    ```
@@ -84,7 +91,16 @@ The frontend is located at the root of the project. Open a new terminal tab to r
    npm install
    ```
 
-3. **Start the Vite Development Server**:
+3. **Set up frontend environment variables**:
+   Create a copy of `.env.example` and name it `.env` in the root folder, then configure your Stripe Publishable Key:
+   ```bash
+   copy .env.example .env
+   ```
+   ```env
+   VITE_STRIPE_PK=pk_test_...
+   ```
+
+4. **Start the Vite Development Server**:
    ```bash
    npm run dev
    ```
