@@ -111,3 +111,28 @@ The frontend is located at the root of the project. Open a new terminal tab to r
 ## Usage
 
 You can now visit the Vite development server URL in your browser to view the application interactively! Make sure *both* the backend server (`php artisan serve`) and the frontend server (`npm run dev`) are running simultaneously.
+
+---
+
+## Testing Stripe Webhooks (Optional)
+
+To fully test successful donations and backend updates locally, you can use the Stripe CLI to forward events to your local webhook.
+
+1. **Install and login to the Stripe CLI**:
+   ```bash
+   stripe login
+   ```
+
+2. **Forward events to your local server**:
+   Open a new terminal tab and run:
+   ```bash
+   stripe listen --forward-to http://localhost:8000/api/v1/stripe/webhook
+   ```
+
+3. **Copy the Webhook Secret**:
+   The CLI will output a webhook signing secret (starting with `whsec_...`). Copy that value and paste it into your `backend/.env` file:
+   ```env
+   STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
+   ```
+
+4. **Restart your Laravel server** to apply the new secret. When you make test donations, your backend will now automatically receive the success events!
