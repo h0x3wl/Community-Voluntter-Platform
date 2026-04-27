@@ -1,5 +1,4 @@
 import { Button } from "./ui/button"
-import { Play } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { api } from "../lib/api"
@@ -48,10 +47,6 @@ export function Hero() {
                                     Donate Now
                                 </Button>
                             </Link>
-                            <Button variant="outline" size="lg" className="h-12 px-8 text-base group">
-                                <Play className="mr-2 h-4 w-4 fill-gray-900 group-hover:fill-primary" />
-                                Watch Video
-                            </Button>
                         </div>
 
                         <div className={`flex items-center justify-center lg:justify-start gap-4 transform transition-all duration-700 delay-500 ${isIntersecting ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
