@@ -17,7 +17,10 @@ import { LeaderboardPage } from "./components/dashboard/LeaderboardPage";
 import { ImpactTrackerPage } from "./components/dashboard/ImpactTrackerPage";
 import { BadgesViewAllPage } from "./components/dashboard/BadgesViewAllPage";
 import { ProfileSettingsPage } from "./components/dashboard/ProfileSettingsPage";
+<<<<<<< HEAD
 import ActivityPage from "./pages/ActivityPage";
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboardPage } from "./components/admin/AdminDashboardPage";
 import { AdminFinancePage } from "./components/admin/AdminFinancePage";
@@ -26,7 +29,10 @@ import { AdminCampaignsPage } from "./components/admin/AdminCampaignsPage";
 import { AdminTeamPage } from "./components/admin/AdminTeamPage";
 import { AdminSettingsPage } from "./components/admin/AdminSettingsPage"
 import { OrgClothingPage } from "./components/admin/OrgClothingPage";
+<<<<<<< HEAD
 import OrgActivityPage from "./pages/ActivityPage";
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 import { ContactPage } from "./components/public/ContactPage";
 import { VolunteerPage } from "./components/public/VolunteerPage";
 import { AllCampaignsPage } from "./components/public/AllCampaignsPage";
@@ -68,10 +74,13 @@ function App() {
         <Route path="/partners" element={<PartnersPage />} />
         <Route path="/accessibility" element={<AccessibilityPage />} />
 
+<<<<<<< HEAD
         <Route path="/activity" element={<DashboardLayout />}>
           <Route index element={<ActivityPage />} />
         </Route>
 
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
         <Route path="/user" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="donations" element={<MyDonationsPage />} />
@@ -87,7 +96,10 @@ function App() {
         {/* Organization Dashboard (was /admin, now /org) */}
         <Route path="/org" element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
+<<<<<<< HEAD
           <Route path="activity" element={<OrgActivityPage />} />
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
           <Route path="finance" element={<AdminFinancePage />} />
           <Route path="donors" element={<AdminDonorsPage />} />
           <Route path="campaigns" element={<AdminCampaignsPage />} />

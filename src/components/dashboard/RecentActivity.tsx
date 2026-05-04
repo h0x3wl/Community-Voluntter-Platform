@@ -26,9 +26,13 @@ export function RecentActivity() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-gray-900">Recent Activity</h3>
+<<<<<<< HEAD
                 <Link to="/user/donations" className="text-sm font-medium text-blue-600 hover:text-blue-700">
                     View all
                 </Link>
+=======
+                <Link to="/user/donations" className="text-sm font-medium text-blue-600 hover:text-blue-700">View all</Link>
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
             </div>
 
             <div className="space-y-6">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
+<<<<<<< HEAD
 import { Search, UserPlus, Mail, Calendar, X, CheckCircle2, Trash2, Edit3 } from "lucide-react"
 import { api } from "../../lib/api"
 import { useCurrentUser } from "../../hooks/useCurrentUser"
@@ -9,6 +10,14 @@ import { useActivities } from "../../hooks/useActivities"
 export function AdminTeamPage() {
     const { orgId, user: currentUser } = useCurrentUser()
     const { logActivity } = useActivities()
+=======
+import { Search, UserPlus, Shield, Mail, Calendar, X, CheckCircle2, Trash2, Edit3 } from "lucide-react"
+import { api } from "../../lib/api"
+import { useCurrentUser } from "../../hooks/useCurrentUser"
+
+export function AdminTeamPage() {
+    const { orgId, user: currentUser } = useCurrentUser()
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     const [team, setTeam] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isWizardOpen, setIsWizardOpen] = useState(false)
@@ -46,7 +55,10 @@ export function AdminTeamPage() {
         setWizardError("")
         try {
             await api.inviteOrgMember(orgId, { email, role })
+<<<<<<< HEAD
             logActivity("Approved user access", email)
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
             setWizardStatus("success")
             setTimeout(() => {
                 setIsWizardOpen(false)
@@ -63,8 +75,11 @@ export function AdminTeamPage() {
         if (!confirm("Are you sure you want to remove this member from the organization?")) return
         try {
             await api.removeOrgMember(orgId, memberId)
+<<<<<<< HEAD
             const member = team.find((m: any) => (m.id || m.public_id) === memberId)
             logActivity("Rejected user access", member?.email || String(memberId))
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
             fetchTeam()
         } catch (err: any) {
             alert("Failed to remove member: " + (err?.message || "Unknown error"))
@@ -75,8 +90,11 @@ export function AdminTeamPage() {
         setEditSaving(true)
         try {
             await api.updateOrgMemberRole(orgId, memberId, { role: newRole })
+<<<<<<< HEAD
             const member = team.find((m: any) => (m.id || m.public_id) === memberId)
             logActivity("Updated user role", `${member?.email || memberId} -> ${newRole}`)
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
             setEditingMemberId(null)
             fetchTeam()
         } catch (err: any) {

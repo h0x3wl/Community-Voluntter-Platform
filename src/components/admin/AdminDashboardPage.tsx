@@ -9,6 +9,10 @@ import {
     ArrowRight,
     Edit3,
     X,
+<<<<<<< HEAD
+=======
+    CheckCircle2
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 } from "lucide-react"
 
 import { Link } from "react-router-dom"

@@ -19,6 +19,7 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+<<<<<<< HEAD
     rules: {
       // Legacy / API-heavy codebase: gradually tighten typing; blocks `npm run lint` otherwise
       '@typescript-eslint/no-explicit-any': 'off',
@@ -31,6 +32,8 @@ export default defineConfig([
       // Dynamic Lucide icons / action-based components are intentional
       'react-hooks/static-components': 'off',
     },
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
   },
 ])
  

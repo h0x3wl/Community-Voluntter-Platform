@@ -1,4 +1,8 @@
 import { ChevronDown } from "lucide-react"
+<<<<<<< HEAD
+=======
+import { useState } from "react"
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 
 export function HelpLegal() {
     const helpLinks = [

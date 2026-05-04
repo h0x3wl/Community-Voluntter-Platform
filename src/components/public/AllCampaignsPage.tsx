@@ -2,7 +2,11 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Header } from "../Header"
 import { Footer } from "../Footer"
+<<<<<<< HEAD
 import { Search, Filter } from "lucide-react"
+=======
+import { Search, Filter, Calendar, Users } from "lucide-react"
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"

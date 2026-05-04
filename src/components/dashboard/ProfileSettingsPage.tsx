@@ -5,11 +5,17 @@ import { User, Shield, Bell, Plus, Mail, MessageSquare, BellRing, Trophy, Loader
 import { useOutletContext } from "react-router-dom"
 import { api, fetchApi } from "../../lib/api"
 import { useRef } from "react"
+<<<<<<< HEAD
 import { useActivities } from "../../hooks/useActivities"
 
 export function ProfileSettingsPage() {
     const { user: currentUser, refreshUser } = useOutletContext<{ user: any, refreshUser: () => Promise<void> }>()
     const { logActivity } = useActivities()
+=======
+
+export function ProfileSettingsPage() {
+    const { user: currentUser, refreshUser } = useOutletContext<{ user: any, refreshUser: () => Promise<void> }>()
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     const [activeTab, setActiveTab] = useState("personal")
     const [notifications, setNotifications] = useState({ email: true, sms: false, push: true, campaign_updates: true })
     const [isSaving, setIsSaving] = useState(false)
@@ -48,7 +54,10 @@ export function ProfileSettingsPage() {
         try {
             if (activeTab === 'personal') {
                 await api.updateMe(formData)
+<<<<<<< HEAD
                 logActivity("Updated profile name", "/user/profile")
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
                 setMessage('Personal details saved.')
             } else if (activeTab === 'security') {
                 if (!passwordData.current_password || !passwordData.new_password || !passwordData.new_password_confirmation) {
@@ -57,7 +66,10 @@ export function ProfileSettingsPage() {
                 }
                 
                 await api.updateMePassword(passwordData)
+<<<<<<< HEAD
                 logActivity("Updated account password", "/user/profile")
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
                 setMessage('Password updated successfully.')
                 setPasswordData({ current_password: '', new_password: '', new_password_confirmation: '' })
             }
@@ -92,7 +104,10 @@ export function ProfileSettingsPage() {
                 currentUser.avatar_url = res.data.avatar_url;
                 localStorage.setItem('user', JSON.stringify({...JSON.parse(localStorage.getItem('user') || '{}'), avatar_url: res.data.avatar_url}));
                 setMessage('Profile picture updated successfully.');
+<<<<<<< HEAD
                 logActivity("Updated profile photo", "/user/profile")
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
                 // Refresh user context so the header avatar updates
                 if (refreshUser) await refreshUser();
             }

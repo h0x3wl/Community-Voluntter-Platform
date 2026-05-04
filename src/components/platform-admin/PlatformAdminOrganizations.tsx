@@ -21,6 +21,7 @@ import {
     Hash,
     BadgeCheck
 } from "lucide-react"
+<<<<<<< HEAD
 import { useActivities } from "../../hooks/useActivities"
 
 export function PlatformAdminOrganizations() {
@@ -32,6 +33,10 @@ export function PlatformAdminOrganizations() {
             return {}
         }
     })()
+=======
+
+export function PlatformAdminOrganizations() {
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     const [organizations, setOrganizations] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
@@ -61,6 +66,7 @@ export function PlatformAdminOrganizations() {
 
     const handleDelete = async (id: string) => {
         if (!confirm("Permanently delete this organization and all its data?")) return
+<<<<<<< HEAD
         try {
             await api.deleteAdminOrganization(id)
             addActivity({
@@ -71,6 +77,9 @@ export function PlatformAdminOrganizations() {
             })
             fetchOrgs()
         } catch (err: any) { alert(`Error: ${err.message}`) }
+=======
+        try { await api.deleteAdminOrganization(id); fetchOrgs() } catch (err: any) { alert(`Error: ${err.message}`) }
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     }
 
     const openEdit = (org: any) => {
@@ -92,12 +101,15 @@ export function PlatformAdminOrganizations() {
     const handleApprove = async (org: any) => {
         try {
             await api.updateAdminOrganization(org.public_id, { status: 'approved' })
+<<<<<<< HEAD
             addActivity({
                 actorId: String(currentUser.public_id || currentUser.id || "platform-admin"),
                 actorType: "user",
                 action: "Approved organization",
                 target: `/admin/organizations`,
             })
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
             fetchOrgs()
             if (reviewingOrg?.public_id === org.public_id) {
                 setReviewingOrg({ ...reviewingOrg, status: 'approved' })
@@ -122,6 +134,11 @@ export function PlatformAdminOrganizations() {
         other: "Other",
     }
 
+<<<<<<< HEAD
+=======
+    const hasLegalInfo = (org: any) => org.authorized_rep_name || org.authorized_rep_id || org.legal_document || org.tax_id || org.license_number
+
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     // Check if a legal document URL points to an image
     const isImageDoc = (url: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(url)
 

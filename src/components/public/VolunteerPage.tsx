@@ -5,12 +5,18 @@ import { Heart, Users, Calendar, MapPin, ArrowRight, CheckCircle2 } from "lucide
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
+<<<<<<< HEAD
 import { useActivities } from "../../hooks/useActivities"
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 
 export function VolunteerPage() {
     const [opportunities, setOpportunities] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
+<<<<<<< HEAD
     const { logActivity } = useActivities()
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 
     useEffect(() => {
         const fetchOpps = async () => {
@@ -40,10 +46,14 @@ export function VolunteerPage() {
                     </p>
                     <div className="flex gap-4 justify-center">
                         <Link to="/register">
+<<<<<<< HEAD
                             <Button
                                 className="bg-green-600 hover:bg-green-700 text-white font-bold h-12 px-8 shadow-xl shadow-green-500/20"
                                 onClick={() => logActivity("Joined an event", "/volunteer")}
                             >
+=======
+                            <Button className="bg-green-600 hover:bg-green-700 text-white font-bold h-12 px-8 shadow-xl shadow-green-500/20">
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
                                 Apply Now
                             </Button>
                         </Link>
@@ -110,6 +120,7 @@ export function VolunteerPage() {
                                     </div>
                                     <div className="flex-shrink-0">
                                         <Link to="/register">
+<<<<<<< HEAD
                                             <Button
                                                 className="w-full md:w-auto bg-white border-2 border-blue-100 text-blue-600 hover:bg-blue-50 hover:border-blue-200 font-bold px-6 h-12 rounded-xl transition-all shadow-sm"
                                                 onClick={() =>
@@ -119,6 +130,9 @@ export function VolunteerPage() {
                                                     )
                                                 }
                                             >
+=======
+                                            <Button className="w-full md:w-auto bg-white border-2 border-blue-100 text-blue-600 hover:bg-blue-50 hover:border-blue-200 font-bold px-6 h-12 rounded-xl transition-all shadow-sm">
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
                                                 Apply Now <ArrowRight className="w-4 h-4 ml-2" />
                                             </Button>
                                         </Link>
