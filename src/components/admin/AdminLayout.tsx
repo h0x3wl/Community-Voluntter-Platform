@@ -8,6 +8,10 @@ import {
     Bell,
     Search,
     Building,
+<<<<<<< HEAD
+    History,
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     Home,
     AlertTriangle,
     CheckCircle2,
@@ -26,6 +30,10 @@ const sidebarItems = [
     { icon: Megaphone, label: "Campaigns", href: "/org/campaigns" },
     { icon: Shirt, label: "Clothes", href: "/org/clothes" },
     { icon: Building, label: "Team", href: "/org/team" },
+<<<<<<< HEAD
+    { icon: History, label: "Activity", href: "/org/activity" },
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     { icon: Settings, label: "Settings", href: "/org/settings" },
 ]
 
@@ -255,7 +263,11 @@ export function AdminLayout() {
                             </p>
                         </div>
                     ) : (
+<<<<<<< HEAD
+                        <Outlet context={{ user }} />
+=======
                         <Outlet />
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
                     )}
                 </main>
             </div>

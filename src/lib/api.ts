@@ -30,7 +30,11 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   let data;
   try {
     data = await response.json();
+<<<<<<< HEAD
+  } catch {
+=======
   } catch (error) {
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     data = null;
   }
 

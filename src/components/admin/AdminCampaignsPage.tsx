@@ -17,9 +17,17 @@ import {
 import { api } from "../../lib/api"
 import { useCurrentUser } from "../../hooks/useCurrentUser"
 import { Link } from "react-router-dom"
+<<<<<<< HEAD
+import { useActivities } from "../../hooks/useActivities"
 
 export function AdminCampaignsPage() {
     const { orgId } = useCurrentUser()
+    const { logActivity } = useActivities()
+=======
+
+export function AdminCampaignsPage() {
+    const { orgId } = useCurrentUser()
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     const [filterActive, setFilterActive] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [campaigns, setCampaigns] = useState<any[]>([])
@@ -69,9 +77,17 @@ export function AdminCampaignsPage() {
             if (editingCampaign) {
                 await api.updateOrgCampaign(orgId, editingCampaign.public_id, campaignData);
                 createdCampaign = editingCampaign;
+<<<<<<< HEAD
+                logActivity("Updated event", String(campaignData.title || editingCampaign.title || "Untitled event"))
             } else {
                 const res = await api.createOrgCampaign(orgId, campaignData);
                 createdCampaign = res?.data;
+                logActivity("Created event", String(campaignData.title || res?.data?.title || "Untitled event"))
+=======
+            } else {
+                const res = await api.createOrgCampaign(orgId, campaignData);
+                createdCampaign = res?.data;
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
             }
 
             // Upload image if one was selected
@@ -104,6 +120,10 @@ export function AdminCampaignsPage() {
         if(confirm("Are you sure you want to remove this campaign? This action permanently deletes it.")) {
             try {
                 await api.deleteOrgCampaign(orgId, campaignId);
+<<<<<<< HEAD
+                logActivity("Deleted event", "/org/campaigns")
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
                 // Refresh list
                 await fetchAll();
             } catch (error) {

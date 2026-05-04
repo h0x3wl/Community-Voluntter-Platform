@@ -1,8 +1,14 @@
 import { Button } from "../ui/button"
 import { CheckCircle2, Share2, Copy, FileText, ArrowRight, Loader2 } from "lucide-react"
 import { Link, useSearchParams } from "react-router-dom"
+<<<<<<< HEAD
+import { useEffect, useRef, useState } from "react"
+import { api } from "../../lib/api"
+import { useActivities } from "../../hooks/useActivities"
+=======
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 
 interface DonationData {
     public_id: string
@@ -23,6 +29,11 @@ export function DonationSuccessPage() {
     const [donation, setDonation] = useState<DonationData | null>(null)
     const [isLoading, setIsLoading] = useState(!!donationId)
     const [copied, setCopied] = useState(false)
+<<<<<<< HEAD
+    const { logActivity } = useActivities()
+    const loggedIds = useRef<Set<string>>(new Set())
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 
     useEffect(() => {
         if (!donationId) return
@@ -56,6 +67,16 @@ export function DonationSuccessPage() {
     const campaignName = donation?.campaign?.title || "General Fund"
     const impactFamilies = Math.floor(amount / 25) || 1
 
+<<<<<<< HEAD
+    useEffect(() => {
+        if (!donation?.public_id) return
+        if (loggedIds.current.has(donation.public_id)) return
+        loggedIds.current.add(donation.public_id)
+        logActivity("Made a donation", `/donate/success?id=${donation.public_id}`)
+    }, [donation?.public_id, logActivity])
+
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     const handleCopyId = () => {
         if (donation?.public_id) {
             navigator.clipboard.writeText(donation.public_id)

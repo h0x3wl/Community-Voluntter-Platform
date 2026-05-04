@@ -2,8 +2,11 @@ import {
     LayoutDashboard,
     HeartHandshake,
     Shirt,
+<<<<<<< HEAD
+=======
     AlertCircle,
     FileText,
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     Trophy,
     BarChart3,
     User,
@@ -13,13 +16,22 @@ import {
     Home,
     CheckCircle2,
     Check,
+<<<<<<< HEAD
+    XCircle,
+    History,
+=======
     XCircle
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { cn } from "../../lib/utils"
 import { Input } from "../ui/input"
 import { api } from "../../lib/api"
+<<<<<<< HEAD
+import { useActivities } from "../../hooks/useActivities"
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/user" },
@@ -29,6 +41,10 @@ const sidebarItems = [
     // { icon: FileText, label: "Applications", href: "/user/applications" },
     { icon: Trophy, label: "Leaderboard", href: "/user/leaderboard" },
     { icon: BarChart3, label: "Impact Tracker", href: "/user/impact" },
+<<<<<<< HEAD
+    { icon: History, label: "Activity", href: "/activity" },
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     { icon: User, label: "Profile", href: "/user/profile" },
 ]
 
@@ -40,13 +56,21 @@ export function DashboardLayout() {
     const [notifications, setNotifications] = useState<any[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
     const [showNotifications, setShowNotifications] = useState(false)
+<<<<<<< HEAD
+    const { addActivity } = useActivities()
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 
     const refreshUser = async () => {
         try {
             const response = await api.getMe()
             setUser(response.data)
             localStorage.setItem("user", JSON.stringify(response.data))
+<<<<<<< HEAD
+        } catch {
+=======
         } catch (err) {
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
             // Not authenticated
             localStorage.removeItem("token")
             navigate("/login")
@@ -71,7 +95,11 @@ export function DashboardLayout() {
                 } catch (e) {
                     console.error(e)
                 }
+<<<<<<< HEAD
+            } catch {
+=======
             } catch (err) {
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
                 localStorage.removeItem("token")
                 navigate("/login")
             } finally {
@@ -85,8 +113,13 @@ export function DashboardLayout() {
         e.preventDefault()
         try {
             await api.logout()
+<<<<<<< HEAD
+        } catch {
+            // ignore logout errors
+=======
         } catch(e) {
             // ignore
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
         }
         localStorage.removeItem("token")
         navigate("/login")
@@ -105,6 +138,15 @@ export function DashboardLayout() {
     const handleInviteResponse = async (notificationId: string, action: 'accept' | 'reject') => {
         try {
             await api.respondToOrgInvite(notificationId, action)
+<<<<<<< HEAD
+            addActivity({
+                actorId: String(user?.public_id || user?.id || "anonymous"),
+                actorType: "user",
+                action: action === "accept" ? "Accepted organization invitation" : "Declined organization invitation",
+                target: "/user",
+            })
+=======
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
             // Update the notification locally
             setNotifications(notifications.map(n => 
                 n.id === notificationId 
@@ -183,7 +225,13 @@ export function DashboardLayout() {
             <div className="flex-1 flex flex-col ml-64">
                 {/* Header */}
                 <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
+<<<<<<< HEAD
+                    <div className="font-semibold text-gray-900">
+                        {location.pathname === "/activity" ? "Activity history" : "Dashboard"}
+                    </div>
+=======
                     <div className="font-semibold text-gray-900">Dashboard</div>
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 
                     <div className="flex items-center gap-6">
                         <div className="relative w-64">

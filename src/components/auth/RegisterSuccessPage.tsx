@@ -10,7 +10,13 @@ export function RegisterSuccessPage() {
             const user = JSON.parse(userStr)
             if (user?.role === "platform_admin") dashboardPath = "/admin"
             else if (user?.role === "org_admin") dashboardPath = "/org"
+<<<<<<< HEAD
+        } catch {
+            /* ignore invalid cached user */
+        }
+=======
         } catch(e) {}
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
     }
 
     return (

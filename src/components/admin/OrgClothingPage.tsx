@@ -16,7 +16,10 @@ import {
     ChevronDown,
     BarChart3,
     ArrowRight,
+<<<<<<< HEAD
+=======
     XCircle
+>>>>>>> 55a37e5d5c6969a2c5f4cf7eb615c42827c3a8f7
 } from "lucide-react"
 
 type Tab = "browse" | "storage" | "delivered"
