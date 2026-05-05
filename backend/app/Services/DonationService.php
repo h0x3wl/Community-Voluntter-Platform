@@ -73,7 +73,19 @@ class DonationService
 
     public function markSucceeded(Donation $donation, ?string $chargeId = null): Donation
     {
+        // Idempotency guard – prevent double XP / campaign progress / notifications
+        // if both the Stripe webhook and the client-side confirm endpoint fire.
+        if ($donation->status === 'succeeded') {
+            return $donation;
+        }
+
         return DB::transaction(function () use ($donation, $chargeId) {
+            // Re-check inside the transaction to avoid race conditions
+            $donation = $donation->fresh();
+            if ($donation->status === 'succeeded') {
+                return $donation;
+            }
+
             $donation->update([
                 'status' => 'succeeded',
                 'stripe_charge_id' => $chargeId,

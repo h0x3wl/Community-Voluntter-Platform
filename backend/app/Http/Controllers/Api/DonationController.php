@@ -6,6 +6,7 @@ use App\Http\Requests\Donations\DonationIntentRequest;
 use App\Http\Resources\DonationResource;
 use App\Models\Donation;
 use App\Services\DonationService;
+use Illuminate\Http\Request;
 
 class DonationController extends ApiController
 {
@@ -45,6 +46,30 @@ class DonationController extends ApiController
         }
 
         return $this->respond(new DonationResource($donation));
+    }
+
+    /**
+     * Confirm a donation after client-side Stripe payment succeeds.
+     * This triggers the side-effects (XP, campaign progress, notifications)
+     * that normally happen via webhook. Safe to call multiple times –
+     * markSucceeded is a no-op if the donation is already succeeded.
+     */
+    public function confirm(Request $request, string $publicId)
+    {
+        $donation = Donation::where('public_id', $publicId)->firstOrFail();
+
+        // Only the donor (or an unauthenticated donation owner) can confirm
+        $user = $request->user();
+        if ($donation->donor_user_id && (!$user || $user->id !== $donation->donor_user_id)) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        // Only process if still in a non-terminal state
+        if (in_array($donation->status, ['requires_payment', 'processing'])) {
+            $donation = $this->donationService->markSucceeded($donation);
+        }
+
+        return $this->respond(new DonationResource($donation->load('campaign')));
     }
 
     /**

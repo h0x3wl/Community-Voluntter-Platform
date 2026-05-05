@@ -196,6 +196,17 @@ function DonationPageInner({ stripe, elements }: { stripe?: any; elements?: any 
                     setIsProcessing(false)
                     return
                 }
+
+                // Trigger server-side side-effects (XP, campaign progress, notifications)
+                // This is needed because Stripe webhooks may not reach local dev servers
+                if (donationPublicId) {
+                    try {
+                        await api.confirmDonation(donationPublicId)
+                    } catch (e) {
+                        console.warn("Donation confirm call failed (webhook may handle it):", e)
+                    }
+                }
+
                 navigate(`/donate/success?id=${donationPublicId}`)
             } else {
                 // --- Simulation fallback (no Stripe key) ---

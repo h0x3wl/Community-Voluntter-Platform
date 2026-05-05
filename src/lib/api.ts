@@ -83,6 +83,7 @@ export const api = {
   // --- Donations ---
   createDonationIntent: (data: any) => fetchApi('/donations/intent', { method: 'POST', body: JSON.stringify(data) }),
   simulateDonation: (data: any) => fetchApi('/donations/simulate', { method: 'POST', body: JSON.stringify(data) }),
+  confirmDonation: (publicId: string) => fetchApi(`/donations/${publicId}/confirm`, { method: 'POST' }),
   getDonation: (publicId: string) => fetchApi(`/donations/${publicId}`, { method: 'GET' }),
 
   // --- Opportunities ---

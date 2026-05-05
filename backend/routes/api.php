@@ -83,6 +83,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/donations/intent', [DonationController::class, 'intent']);
         Route::post('/donations/simulate', [DonationController::class, 'simulate']);
+        Route::post('/donations/{public_id}/confirm', [DonationController::class, 'confirm']);
         Route::get('/donations/{public_id}', [DonationController::class, 'show']);
     });
 
