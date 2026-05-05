@@ -204,7 +204,7 @@ export function RegisterForm() {
                         )}
                     >
                         <Building2 className="w-4 h-4" />
-                        Org Admin
+                        Organization
                     </button>
                 </div>
             </div>
