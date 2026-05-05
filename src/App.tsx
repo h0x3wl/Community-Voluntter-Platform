@@ -25,6 +25,7 @@ import { AdminCampaignsPage } from "./components/admin/AdminCampaignsPage";
 import { AdminTeamPage } from "./components/admin/AdminTeamPage";
 import { AdminSettingsPage } from "./components/admin/AdminSettingsPage"
 import { OrgClothingPage } from "./components/admin/OrgClothingPage";
+import { OrgReceivedDonationsPage } from "./components/admin/OrgReceivedDonationsPage";
 import { ContactPage } from "./components/public/ContactPage";
 import { VolunteerPage } from "./components/public/VolunteerPage";
 import { AllCampaignsPage } from "./components/public/AllCampaignsPage";
@@ -87,6 +88,7 @@ function App() {
           <Route path="team" element={<AdminTeamPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="clothes" element={<OrgClothingPage />} />
+          <Route path="received" element={<OrgReceivedDonationsPage />} />
         </Route>
 
         {/* Platform Admin Panel */}

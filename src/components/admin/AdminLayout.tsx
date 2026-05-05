@@ -11,7 +11,8 @@ import {
     Home,
     AlertTriangle,
     CheckCircle2,
-    Shirt
+    Shirt,
+    Inbox
 } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate, Navigate } from "react-router-dom"
 import { useState, useEffect } from "react"
@@ -25,6 +26,7 @@ const sidebarItems = [
     { icon: Users, label: "Donors", href: "/org/donors" },
     { icon: Megaphone, label: "Campaigns", href: "/org/campaigns" },
     { icon: Shirt, label: "Clothes", href: "/org/clothes" },
+    { icon: Inbox, label: "Received Donations", href: "/org/received" },
     { icon: Building, label: "Team", href: "/org/team" },
     { icon: Settings, label: "Settings", href: "/org/settings" },
 ]
