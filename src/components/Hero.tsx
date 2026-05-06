@@ -70,7 +70,7 @@ export function Hero() {
                     <div className={`flex-1 relative transform transition-all duration-1000 ${isIntersecting ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`}>
                         <div className="relative z-10">
                             <img
-                                src="/Children.png"
+                                src="/charity.jpg"
                                 alt="Happy children standing together"
                                 className="w-full h-auto max-w-lg mx-auto"
                             />

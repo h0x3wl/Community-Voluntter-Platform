@@ -29,7 +29,7 @@ export function OurStory() {
                         <div className="relative">
                             <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl transform rotate-1 transition-transform hover:rotate-0">
                                 <img
-                                    src="/Children.png"
+                                    src="/charity.jpg"
                                     alt="Our story illustration"
                                     className="w-70 h-auto max-w-lg mx-auto"
                                 />
