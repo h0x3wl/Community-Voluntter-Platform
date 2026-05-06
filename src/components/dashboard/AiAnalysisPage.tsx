@@ -349,8 +349,17 @@ export function AiAnalysisPage() {
                                                 <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
                                                 <p className="text-xs text-gray-400">{item.ai_category || item.condition}</p>
                                             </div>
-                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${item.status === "approved" ? "bg-green-50 text-green-700" : item.status === "pending_review" ? "bg-amber-50 text-amber-700" : "bg-gray-100 text-gray-600"}`}>
-                                                {item.status?.replace("_", " ")}
+                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                                (item.request_status || item.status) === "accepted" ? "bg-green-50 text-green-700" :
+                                                (item.request_status || item.status) === "delivered" ? "bg-purple-50 text-purple-700" :
+                                                (item.request_status || item.status) === "pending" ? "bg-amber-50 text-amber-700" :
+                                                (item.request_status || item.status) === "rejected" ? "bg-red-50 text-red-700" :
+                                                item.status === "approved" ? "bg-blue-50 text-blue-700" :
+                                                "bg-gray-100 text-gray-600"
+                                            }`}>
+                                                {item.request_status
+                                                    ? item.request_status.replace("_", " ")
+                                                    : item.status === "approved" ? "available" : item.status?.replace("_", " ")}
                                             </span>
                                         </div>
                                     ))}

@@ -70,16 +70,16 @@ class ItemController extends ApiController
             ]);
         }
 
-        // If targeted to a specific org, auto-create an accepted request
-        // so it goes directly to that org's storage
+        // If targeted to a specific org, auto-create a pending request
+        // so it goes to that org's incoming queue
         if ($targetOrgId) {
             \App\Models\ItemRequest::create([
                 'public_id' => \Illuminate\Support\Str::uuid(),
                 'item_listing_id' => $listing->id,
                 'organization_id' => $targetOrgId,
                 'requested_by_user_id' => $request->user()->id,
-                'status' => 'accepted',
-                'decided_at' => now(),
+                'status' => 'pending',
+                'decided_at' => null,
             ]);
         }
 

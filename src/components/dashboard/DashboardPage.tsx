@@ -1,6 +1,6 @@
 import { Button } from "../ui/button"
 import { Link, useOutletContext } from "react-router-dom"
-import { HandHeart, PiggyBank, CalendarClock, Users } from "lucide-react"
+import { HandHeart, PiggyBank, Megaphone } from "lucide-react"
 import { StatsCard } from "./StatsCard"
 import { RecentActivity } from "./RecentActivity"
 import { SuggestedCampaign } from "./SuggestedCampaign"
@@ -98,7 +98,7 @@ export function DashboardPage() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <StatsCard
                     title="Total Donations"
                     value={isLoading ? "..." : `$${(impact?.monthly_goal_progress?.current_cents / 100 || 0).toLocaleString()}`}
@@ -108,20 +108,12 @@ export function DashboardPage() {
                     iconColor="text-green-600"
                 />
                 <StatsCard
-                    title="Lives Impacted"
-                    value={isLoading ? "..." : String(impact?.lives_impacted || 0)}
-                    subtext="People directly helped"
-                    icon={Users}
+                    title="Campaigns Donated"
+                    value={String(user?.campaigns_supported_count || 0)}
+                    subtext="total campaigns supported"
+                    icon={Megaphone}
                     bgIconColor="bg-blue-100"
                     iconColor="text-blue-600"
-                />
-                <StatsCard
-                    title="Volunteer Hours"
-                    value={isLoading ? "..." : `${impact?.volunteer_hours || 0} hrs`}
-                    subtext="Time dedicated this month"
-                    icon={CalendarClock}
-                    bgIconColor="bg-purple-100"
-                    iconColor="text-purple-600"
                 />
             </div>
 

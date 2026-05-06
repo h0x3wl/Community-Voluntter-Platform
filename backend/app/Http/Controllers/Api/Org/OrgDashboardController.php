@@ -102,26 +102,49 @@ class OrgDashboardController extends ApiController
         $this->authorize('view', $org);
 
         $from = request()->query('from');
-        $to = request()->query('to');
+        $to   = request()->query('to');
 
-        $query = Donation::where('organization_id', $org->id)->where('status', 'succeeded');
+        $query = Donation::where('donations.organization_id', $org->id)
+            ->where('donations.status', 'succeeded');
+
         if ($from && $to) {
-            $query->whereBetween('paid_at', [$from, $to]);
+            $query->whereBetween('donations.paid_at', [$from, $to]);
         }
 
-        // Get aggregate stats before grouping
-        $totalCount = (clone $query)->distinct('donor_user_id')->count('donor_user_id');
-        $totalAmountCents = (clone $query)->sum('amount_cents');
+        // Aggregate stats
+        $totalCount       = (clone $query)->count();
+        $totalAmountCents = (clone $query)->sum('donations.amount_cents');
 
-        $donors = $query->selectRaw('donor_user_id, donor_name, donor_email, SUM(amount_cents) as total_cents, MAX(paid_at) as last_donated_at')
-            ->groupBy('donor_user_id', 'donor_name', 'donor_email')
-            ->orderByDesc('total_cents')
-            ->limit(50)
-            ->get();
+        // Individual donation rows with real campaign title
+        $donations = (clone $query)
+            ->leftJoin('campaigns', 'campaigns.id', '=', 'donations.campaign_id')
+            ->select([
+                'donations.public_id',
+                'donations.donor_name',
+                'donations.donor_email',
+                'donations.amount_cents',
+                'donations.paid_at as donated_at',
+                'donations.status',
+                'campaigns.title as campaign_title',
+            ])
+            ->orderByDesc('donations.paid_at')
+            ->limit(100)
+            ->get()
+            ->map(function ($d) {
+                return [
+                    'public_id'      => $d->public_id,
+                    'donor_name'     => $d->donor_name ?: 'Anonymous',
+                    'donor_email'    => $d->donor_email,
+                    'amount_cents'   => (int) $d->amount_cents,
+                    'campaign'       => $d->campaign_title ?: 'General Fund',
+                    'donated_at'     => $d->donated_at,
+                    'status'         => $d->status,
+                ];
+            });
 
         return $this->respond([
-            'recent_donors' => $donors,
-            'total_count' => $totalCount,
+            'recent_donors'      => $donations,
+            'total_count'        => $totalCount,
             'total_amount_cents' => (int) $totalAmountCents,
         ]);
     }

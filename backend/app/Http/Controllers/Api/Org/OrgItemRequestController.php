@@ -50,13 +50,35 @@ class OrgItemRequestController extends ApiController
         $org = Organization::where('public_id', $publicId)->firstOrFail();
         $this->authorize('view', $org);
 
-        $requests = ItemRequest::where('organization_id', $org->id)->latest()->paginate(15);
+        $requests = ItemRequest::where('organization_id', $org->id)
+            ->with(['listing.images', 'listing.donor'])
+            ->latest()
+            ->paginate(50);
 
-        return $this->respond($requests->items(), [
+        $items = collect($requests->items())->map(function ($req) {
+            $listing = $req->listing;
+            return [
+                'request_public_id' => $req->public_id,
+                'status'            => $req->status,
+                'decided_at'        => $req->decided_at,
+                'created_at'        => $req->created_at,
+                // item listing fields
+                'public_id'         => $listing?->public_id,
+                'title'             => $listing?->title,
+                'description'       => $listing?->description,
+                'condition'         => $listing?->condition,
+                'ai_category'       => $listing?->ai_category,
+                'ai_confidence'     => $listing?->ai_confidence,
+                'images'            => $listing?->images->map(fn($img) => ['url' => $img->image_url]) ?? [],
+                'donor'             => $listing?->donor ? ['name' => $listing->donor->first_name . ' ' . $listing->donor->last_name] : null,
+            ];
+        });
+
+        return $this->respond($items->values()->all(), [
             'pagination' => [
                 'current_page' => $requests->currentPage(),
-                'last_page' => $requests->lastPage(),
-                'total' => $requests->total(),
+                'last_page'    => $requests->lastPage(),
+                'total'        => $requests->total(),
             ],
         ]);
     }

@@ -1,6 +1,6 @@
 import { Button } from "../ui/button"
 import { Link, useOutletContext } from "react-router-dom"
-import { Download, Users, Clock, Leaf, MoreHorizontal, ArrowUpRight, Trophy } from "lucide-react"
+import { Download, Users, Leaf, MoreHorizontal, ArrowUpRight, Trophy } from "lucide-react"
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"
 
@@ -221,13 +221,6 @@ export function ImpactTrackerPage() {
                         value={impact?.lives_impacted || 0}
                         colorClass="text-green-600"
                         bgClass="bg-green-50"
-                    />
-                    <StatCard
-                        icon={Clock}
-                        label="Volunteer Hours"
-                        value={impact?.volunteer_hours || 0}
-                        colorClass="text-blue-600"
-                        bgClass="bg-blue-50"
                     />
                     <StatCard
                         icon={Leaf}

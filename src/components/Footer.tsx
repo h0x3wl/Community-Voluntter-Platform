@@ -22,7 +22,7 @@ export function Footer() {
                             <li><Link to="/about" className="text-sm text-gray-600 hover:text-primary">Our Story</Link></li>
                             <li><Link to="/about" className="text-sm text-gray-600 hover:text-primary">Team</Link></li>
                             <li><Link to="/campaigns" className="text-sm text-gray-600 hover:text-primary">Campaigns</Link></li>
-                            <li><Link to="/volunteer" className="text-sm text-gray-600 hover:text-primary">Volunteer</Link></li>
+                            <li><Link to="/volunteer" className="text-sm text-gray-600 hover:text-primary">Support</Link></li>
                         </ul>
                     </div>
 

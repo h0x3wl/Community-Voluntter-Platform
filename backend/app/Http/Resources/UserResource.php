@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'points_balance' => $this->points_balance,
             'total_donated_cents' => $this->total_donated_cents ?? 0,
             'donation_count' => $this->donation_count ?? 0,
+            'campaigns_supported_count' => $this->donations()->where('status', 'succeeded')->distinct('campaign_id')->count('campaign_id'),
             'level' => $this->level ?? 1,
             'xp' => $this->xp ?? 0,
             'last_login_at' => optional($this->last_login_at)->toIso8601String(),

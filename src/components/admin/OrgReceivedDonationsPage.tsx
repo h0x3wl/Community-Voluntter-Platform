@@ -14,6 +14,8 @@ import {
     ArrowUpRight,
     Gift,
     RefreshCw,
+    XCircle,
+    Bell,
 } from "lucide-react"
 
 type DonationType = "all" | "money" | "clothes"
@@ -22,6 +24,7 @@ interface MoneyDonation {
     kind: "money"
     id: string
     donor_name: string
+    donor_email?: string
     amount_cents: number
     campaign?: string
     date: string
@@ -31,6 +34,7 @@ interface MoneyDonation {
 interface ClothesDonation {
     kind: "clothes"
     id: string
+    request_id: string
     title: string
     ai_category?: string
     condition?: string
@@ -38,6 +42,7 @@ interface ClothesDonation {
     images?: { url: string }[]
     request_status: string
     created_at: string
+    org_id: string
 }
 
 type DonationEntry = MoneyDonation | ClothesDonation
@@ -47,9 +52,12 @@ export function OrgReceivedDonationsPage() {
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<DonationType>("all")
     const [search, setSearch] = useState("")
+    const [actionLoading, setActionLoading] = useState<string | null>(null)
 
     const [moneyDonations, setMoneyDonations] = useState<MoneyDonation[]>([])
     const [clothesDonations, setClothesDonations] = useState<ClothesDonation[]>([])
+    const [notifications, setNotifications] = useState<any[]>([])
+    const [showNotifications, setShowNotifications] = useState(false)
 
     // Summary stats
     const [totalMoneyAmount, setTotalMoneyAmount] = useState(0)
@@ -63,10 +71,21 @@ export function OrgReceivedDonationsPage() {
                 if (u.org_public_id) {
                     setOrgId(u.org_public_id)
                     loadData(u.org_public_id)
+                    loadNotifications()
                 }
             } catch { }
         }
     }, [])
+
+    const loadNotifications = async () => {
+        try {
+            const res = await api.getNotifications()
+            const notifs = (res?.data || []).filter((n: any) =>
+                n.type?.includes("clothes") || n.type?.includes("item") || n.type?.includes("clothing")
+            )
+            setNotifications(notifs)
+        } catch { }
+    }
 
     const loadData = async (oid: string) => {
         setLoading(true)
@@ -76,41 +95,68 @@ export function OrgReceivedDonationsPage() {
                 api.getOrgStorage(oid).catch(() => null),
             ])
 
-            // Build money donations list from donors recent list
+            // Build money donations — one row per donor entry
             const donors = donorsRes?.data
             if (donors) {
                 setTotalMoneyAmount((donors.total_amount_cents || 0) / 100)
                 const recent: MoneyDonation[] = (donors.recent_donors || []).map((d: any, i: number) => ({
                     kind: "money",
-                    id: `TRX-${1000 + i}`,
+                    id: d.public_id || `TRX-${1000 + i}`,
                     donor_name: d.donor_name || "Anonymous",
-                    amount_cents: d.total_cents || 0,
+                    donor_email: d.donor_email || "",
+                    amount_cents: d.total_cents || d.amount_cents || 0,
                     campaign: d.campaign || "General Fund",
-                    date: d.last_donated_at || "",
+                    date: d.last_donated_at || d.donated_at || "",
                     status: "completed",
                 }))
                 setMoneyDonations(recent)
             }
 
-            // Build clothes donations list from storage (all statuses)
+            // Build clothes donations — one row per item
             const storageItems: any[] = storageRes?.data || []
             setTotalClothesCount(storageItems.length)
             const clothes: ClothesDonation[] = storageItems.map((item: any) => ({
                 kind: "clothes",
                 id: item.public_id || item.id,
+                request_id: item.request_public_id || item.public_id || item.id,
                 title: item.title || "Clothing Item",
                 ai_category: item.ai_category,
                 condition: item.condition,
                 donor: item.donor,
                 images: item.images,
-                request_status: item.request_status || "accepted",
+                request_status: item.request_status || "pending",
                 created_at: item.created_at || "",
+                org_id: oid,
             }))
             setClothesDonations(clothes)
         } catch (e) {
             console.error("Failed to load received donations", e)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleAccept = async (entry: ClothesDonation) => {
+        setActionLoading(entry.id)
+        try {
+            await api.acceptItemRequest(entry.org_id, entry.request_id)
+            await loadData(entry.org_id)
+        } catch (e: any) {
+            alert(e.message || "Failed to accept item")
+        } finally {
+            setActionLoading(null)
+        }
+    }
+
+    const handleReject = async (entry: ClothesDonation) => {
+        setActionLoading(entry.id + "_reject")
+        try {
+            await api.rejectItemRequest(entry.org_id, entry.request_id)
+            await loadData(entry.org_id)
+        } catch (e: any) {
+            alert(e.message || "Failed to reject item")
+        } finally {
+            setActionLoading(null)
         }
     }
 
@@ -152,9 +198,13 @@ export function OrgReceivedDonationsPage() {
         switch (status) {
             case "delivered": return { color: "bg-purple-50 text-purple-700 border-purple-200", label: "Delivered", icon: CheckCircle2 }
             case "accepted": return { color: "bg-green-50 text-green-700 border-green-200", label: "In Storage", icon: Package }
+            case "rejected": return { color: "bg-red-50 text-red-700 border-red-200", label: "Rejected", icon: XCircle }
+            case "pending": return { color: "bg-amber-50 text-amber-700 border-amber-200", label: "Pending", icon: Clock }
             default: return { color: "bg-gray-50 text-gray-600 border-gray-200", label: status, icon: Clock }
         }
     }
+
+    const pendingClothes = clothesDonations.filter(c => c.request_status === "pending").length
 
     if (loading) {
         return (
@@ -175,13 +225,55 @@ export function OrgReceivedDonationsPage() {
                     <h1 className="text-2xl font-bold text-gray-900 mb-1">Received Donations</h1>
                     <p className="text-gray-500 text-sm">All monetary and clothes donations your organization has received.</p>
                 </div>
-                <button
-                    onClick={() => orgId && loadData(orgId)}
-                    className="flex items-center gap-2 h-9 px-4 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors bg-white"
-                >
-                    <RefreshCw className="w-4 h-4 text-gray-500" />
-                    Refresh
-                </button>
+                <div className="flex items-center gap-3">
+                    {/* Notification bell */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowNotifications(!showNotifications)}
+                            className="relative flex items-center justify-center w-10 h-10 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition-colors shadow-sm"
+                        >
+                            <Bell className="w-4 h-4 text-gray-600" />
+                            {pendingClothes > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                    {pendingClothes}
+                                </span>
+                            )}
+                        </button>
+                        {showNotifications && (
+                            <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 max-h-72 overflow-y-auto">
+                                <div className="p-4 border-b border-gray-100">
+                                    <p className="font-bold text-gray-900 text-sm">Clothes Donations Pending Review</p>
+                                </div>
+                                {pendingClothes === 0 ? (
+                                    <div className="p-6 text-center text-sm text-gray-400">No pending clothes items</div>
+                                ) : (
+                                    clothesDonations
+                                        .filter(c => c.request_status === "pending")
+                                        .map(c => (
+                                            <div key={c.id} className="px-4 py-3 border-b border-gray-50 last:border-0">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                        <Shirt className="w-4 h-4 text-purple-500" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold text-gray-900 truncate">{c.title}</p>
+                                                        <p className="text-xs text-gray-500">by {c.donor?.name || "Anonymous"}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => orgId && loadData(orgId)}
+                        className="flex items-center gap-2 h-9 px-4 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors bg-white"
+                    >
+                        <RefreshCw className="w-4 h-4 text-gray-500" />
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             {/* Summary Cards */}
@@ -222,6 +314,7 @@ export function OrgReceivedDonationsPage() {
                     </div>
                     <p className="text-3xl font-bold text-gray-900">{totalClothesCount}</p>
                     <p className="text-xs text-gray-500 mt-1">
+                        {pendingClothes > 0 && <span className="text-amber-600 font-semibold">{pendingClothes} pending · </span>}
                         {clothesDonations.filter(c => c.request_status === "delivered").length} delivered · {clothesDonations.filter(c => c.request_status === "accepted").length} in storage
                     </p>
                 </div>
@@ -331,8 +424,11 @@ export function OrgReceivedDonationsPage() {
                                 // clothes
                                 const statusInfo = clothesStatusBadge(entry.request_status)
                                 const StatusIcon = statusInfo.icon
+                                const isPending = entry.request_status === "pending"
+                                const isActing = actionLoading === entry.id || actionLoading === entry.id + "_reject"
+
                                 return (
-                                    <div key={`clothes-${idx}`} className="px-6 py-4 hover:bg-gray-50/60 transition-colors flex items-center gap-4">
+                                    <div key={`clothes-${idx}`} className={`px-6 py-4 transition-colors flex items-center gap-4 ${isPending ? "bg-amber-50/40 hover:bg-amber-50/60" : "hover:bg-gray-50/60"}`}>
                                         {/* Image or icon */}
                                         <div className="w-11 h-11 rounded-xl overflow-hidden bg-purple-50 border border-purple-100 flex-shrink-0">
                                             {entry.images?.[0]?.url ? (
@@ -351,6 +447,11 @@ export function OrgReceivedDonationsPage() {
                                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wide flex-shrink-0">
                                                     Clothes
                                                 </span>
+                                                {isPending && (
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300 uppercase tracking-wide flex-shrink-0 animate-pulse">
+                                                        New
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
                                                 {entry.ai_category && (
@@ -376,12 +477,33 @@ export function OrgReceivedDonationsPage() {
                                             </div>
                                         </div>
 
-                                        {/* Status */}
-                                        <div className="flex-shrink-0">
-                                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wide ${statusInfo.color}`}>
-                                                <StatusIcon className="w-3 h-3" />
-                                                {statusInfo.label}
-                                            </span>
+                                        {/* Status / Actions */}
+                                        <div className="flex-shrink-0 flex items-center gap-2">
+                                            {isPending ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleAccept(entry)}
+                                                        disabled={isActing}
+                                                        className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-bold transition-colors disabled:opacity-50"
+                                                    >
+                                                        {actionLoading === entry.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                                                        Accept
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleReject(entry)}
+                                                        disabled={isActing}
+                                                        className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition-colors disabled:opacity-50"
+                                                    >
+                                                        {actionLoading === entry.id + "_reject" ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wide ${statusInfo.color}`}>
+                                                    <StatusIcon className="w-3 h-3" />
+                                                    {statusInfo.label}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 )

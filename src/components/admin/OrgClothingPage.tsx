@@ -16,15 +16,17 @@ import {
     ChevronDown,
     BarChart3,
     ArrowRight,
-    XCircle
+    XCircle,
+    Inbox
 } from "lucide-react"
 
-type Tab = "browse" | "storage" | "delivered"
+type Tab = "incoming" | "browse" | "storage" | "delivered"
 
 export function OrgClothingPage() {
-    const [tab, setTab] = useState<Tab>("browse")
+    const [tab, setTab] = useState<Tab>("incoming")
     const [items, setItems] = useState<any[]>([])
     const [storageItems, setStorageItems] = useState<any[]>([])
+    const [incomingRequests, setIncomingRequests] = useState<any[]>([])
     const [storageSummary, setStorageSummary] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
@@ -32,6 +34,8 @@ export function OrgClothingPage() {
     const [filterOpen, setFilterOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<any>(null)
     const [requesting, setRequesting] = useState<string | null>(null)
+    const [delivering, setDelivering] = useState<string | null>(null)
+    const [actingOn, setActingOn] = useState<string | null>(null)
     const [orgId, setOrgId] = useState("")
 
     useEffect(() => {
@@ -50,13 +54,18 @@ export function OrgClothingPage() {
     const loadData = async (oid: string) => {
         setLoading(true)
         try {
-            const [availRes, storRes] = await Promise.all([
+            const [availRes, storRes, incomingRes] = await Promise.all([
                 api.getOrgAvailableItems(oid),
                 api.getOrgStorage(oid),
+                api.getOrgItemRequests(oid),
             ])
             setItems(availRes.data || [])
             setStorageItems(storRes.data || [])
             setStorageSummary(storRes.meta?.summary || null)
+            
+            // incoming requests are those with pending status
+            const incoming = (incomingRes.data || []).filter((req: any) => req.status === 'pending')
+            setIncomingRequests(incoming)
         } catch (e) {
             console.error(e)
         } finally {
@@ -69,7 +78,6 @@ export function OrgClothingPage() {
         setRequesting(itemPublicId)
         try {
             await api.requestItem(itemPublicId, orgId)
-            // Refresh and switch to storage tab
             await loadData(orgId)
             setTab("storage")
         } catch (e: any) {
@@ -78,8 +86,6 @@ export function OrgClothingPage() {
             setRequesting(null)
         }
     }
-
-    const [delivering, setDelivering] = useState<string | null>(null)
 
     const handleDeliver = async (requestPublicId: string) => {
         if (!orgId) return
@@ -95,7 +101,39 @@ export function OrgClothingPage() {
         }
     }
 
+    const handleAccept = async (requestPublicId: string) => {
+        if (!orgId) return
+        setActingOn(requestPublicId)
+        try {
+            await api.acceptItemRequest(orgId, requestPublicId)
+            await loadData(orgId)
+            setTab("storage")
+        } catch (e: any) {
+            alert(e.message || "Failed to accept item")
+        } finally {
+            setActingOn(null)
+        }
+    }
+
+    const handleReject = async (requestPublicId: string) => {
+        if (!orgId) return
+        setActingOn(requestPublicId + "_reject")
+        try {
+            await api.rejectItemRequest(orgId, requestPublicId)
+            await loadData(orgId)
+        } catch (e: any) {
+            alert(e.message || "Failed to reject item")
+        } finally {
+            setActingOn(null)
+        }
+    }
+
     const categories = Array.from(new Set(items.map(i => i.ai_category).filter(Boolean)))
+
+    const filteredIncoming = incomingRequests.filter(item => {
+        const matchSearch = !searchQuery || item.title?.toLowerCase().includes(searchQuery.toLowerCase()) || item.ai_category?.toLowerCase().includes(searchQuery.toLowerCase())
+        return matchSearch
+    })
 
     const filteredItems = items.filter(item => {
         const matchSearch = !searchQuery || item.title?.toLowerCase().includes(searchQuery.toLowerCase()) || item.ai_category?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -144,21 +182,25 @@ export function OrgClothingPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 mb-1">Clothes Donations</h1>
-                    <p className="text-gray-500 text-sm">Browse available donations and manage your clothes storage.</p>
+                    <p className="text-gray-500 text-sm">Browse available donations, review incoming items, and manage your storage.</p>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-                <button onClick={() => { setTab("browse"); setSearchQuery(""); setCategoryFilter("") }} className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${tab === "browse" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit overflow-x-auto">
+                <button onClick={() => { setTab("incoming"); setSearchQuery(""); setCategoryFilter("") }} className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${tab === "incoming" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                    <Inbox className="w-4 h-4" /> Incoming
+                    {incomingRequests.length > 0 && <span className="ml-1 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold">{incomingRequests.length}</span>}
+                </button>
+                <button onClick={() => { setTab("browse"); setSearchQuery(""); setCategoryFilter("") }} className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${tab === "browse" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
                     <Package className="w-4 h-4" /> Browse Items
                     <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">{items.length}</span>
                 </button>
-                <button onClick={() => { setTab("storage"); setSearchQuery(""); setCategoryFilter("") }} className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${tab === "storage" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                <button onClick={() => { setTab("storage"); setSearchQuery(""); setCategoryFilter("") }} className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${tab === "storage" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
                     <Warehouse className="w-4 h-4" /> Storage
                     <span className="ml-1 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">{acceptedCount}</span>
                 </button>
-                <button onClick={() => { setTab("delivered"); setSearchQuery(""); setCategoryFilter("") }} className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${tab === "delivered" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                <button onClick={() => { setTab("delivered"); setSearchQuery(""); setCategoryFilter("") }} className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${tab === "delivered" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
                     <Truck className="w-4 h-4" /> Delivered
                     <span className="ml-1 text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">{deliveredCount}</span>
                 </button>
@@ -203,24 +245,6 @@ export function OrgClothingPage() {
                 </div>
             )}
 
-            {/* Category breakdown in storage */}
-            {tab === "storage" && storageSummary?.categories && Object.keys(storageSummary.categories).length > 0 && (
-                <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-                    <h3 className="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4 text-blue-500" /> Storage by Category
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                        {Object.entries(storageSummary.categories).map(([cat, count]: [string, any]) => (
-                            <div key={cat} className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-2">
-                                <Shirt className="w-4 h-4 text-gray-500" />
-                                <span className="text-sm font-medium text-gray-700">{cat}</span>
-                                <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">{count}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
             {/* Search & Filter */}
             <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
@@ -247,6 +271,68 @@ export function OrgClothingPage() {
                     </div>
                 )}
             </div>
+
+            {/* Incoming Grid */}
+            {tab === "incoming" && (
+                <>
+                    {filteredIncoming.length === 0 ? (
+                        <div className="text-center py-16">
+                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Inbox className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <h3 className="font-semibold text-gray-900 mb-1">No incoming items</h3>
+                            <p className="text-sm text-gray-500">When users donate clothes directly to your org, they will appear here.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredIncoming.map((item: any) => (
+                                <div key={item.request_public_id} className="bg-amber-50/30 rounded-xl border border-amber-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
+                                    <div className="relative h-44 bg-gray-100 overflow-hidden">
+                                        {item.images?.[0]?.url ? (
+                                            <img src={item.images[0].url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center"><Shirt className="w-12 h-12 text-gray-300" /></div>
+                                        )}
+                                        {item.ai_category && (
+                                            <span className="absolute top-3 left-3 px-2 py-1 bg-white/90 backdrop-blur rounded-lg text-xs font-bold text-gray-700 border border-gray-200">
+                                                {item.ai_category}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="p-4">
+                                        <h4 className="font-semibold text-gray-900 mb-1 truncate">{item.title}</h4>
+                                        <p className="text-xs text-gray-500 mb-3 line-clamp-2">{item.description}</p>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${conditionColor(item.condition)}`}>
+                                                {item.condition?.replace("_", " ")}
+                                            </span>
+                                            {item.donor && <span className="text-xs text-gray-400">by {item.donor.name}</span>}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => handleAccept(item.request_public_id)} 
+                                                disabled={actingOn === item.request_public_id} 
+                                                className="flex-1 h-9 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                            >
+                                                {actingOn === item.request_public_id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                                                Accept
+                                            </button>
+                                            <button 
+                                                onClick={() => handleReject(item.request_public_id)} 
+                                                disabled={actingOn === item.request_public_id + "_reject"} 
+                                                className="flex-1 h-9 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                            >
+                                                {actingOn === item.request_public_id + "_reject" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* Items Grid */}
             {tab === "browse" && (
@@ -311,7 +397,7 @@ export function OrgClothingPage() {
                                 <Warehouse className="w-8 h-8 text-gray-400" />
                             </div>
                             <h3 className="font-semibold text-gray-900 mb-1">Storage is empty</h3>
-                            <p className="text-sm text-gray-500">Take items from the Browse tab to add them to your storage.</p>
+                            <p className="text-sm text-gray-500">Take items from the Browse tab or accept incoming donations to add them to your storage.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

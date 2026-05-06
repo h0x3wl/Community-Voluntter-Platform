@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Button } from "./ui/button"
 import { Heart, User, LogOut } from "lucide-react"
 import { useState, useEffect } from "react"
 
 export function Header() {
+    const navigate = useNavigate()
     const scrollToTop = () => {
         window.scrollTo(0, 0)
     }
@@ -34,6 +35,7 @@ export function Header() {
         localStorage.removeItem("user")
         setIsLoggedIn(false)
         setUserRole("")
+        navigate("/")
     }
 
     return (
@@ -48,7 +50,7 @@ export function Header() {
                 {/* Center: Nav — absolutely centered */}
                 <nav className="hidden md:flex gap-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <Link to="/campaigns" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors" onClick={scrollToTop}>Our Causes</Link>
-                    <Link to="/volunteer" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors" onClick={scrollToTop}>Get Involved</Link>
+                    <Link to="/volunteer" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors" onClick={scrollToTop}>Support</Link>
                     <Link to="/contact" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors" onClick={scrollToTop}>Contact</Link>
                 </nav>
 
@@ -62,12 +64,13 @@ export function Header() {
                                     Dashboard
                                 </Button>
                             </Link>
-                            <Link to="/" onClick={() => { scrollToTop(); handleLogout(); }}>
-                                <Button variant="ghost" className="font-semibold text-gray-500 hover:text-red-600 hover:bg-red-50">
-                                    <LogOut className="w-4 h-4 mr-2" />
-                                    Logout
-                                </Button>
-                            </Link>
+                            <Button
+                                onClick={() => { handleLogout(); scrollToTop(); }}
+                                className="font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30"
+                            >
+                                <LogOut className="w-4 h-4 mr-2" />
+                                Logout
+                            </Button>
                         </>
                     ) : (
                         <>

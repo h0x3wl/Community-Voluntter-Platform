@@ -11,16 +11,31 @@ class UserItemController extends ApiController
 {
     public function index()
     {
-        $items = request()->user()->itemListings()->with('images')->latest()->paginate(15);
+        $items = request()->user()->itemListings()
+            ->with(['images', 'requests'])
+            ->latest()
+            ->paginate(15);
 
-        return $this->respond(ItemListingResource::collection($items), [
-            'pagination' => [
-                'current_page' => $items->currentPage(),
-                'last_page' => $items->lastPage(),
-                'total' => $items->total(),
+        // Append request_status from the latest request (if any)
+        $transformed = $items->through(function ($item) {
+            $data = (new ItemListingResource($item))->resolve();
+            $latestRequest = $item->requests->sortByDesc('created_at')->first();
+            $data['request_status'] = $latestRequest?->status ?? null;
+            return $data;
+        });
+
+        return response()->json([
+            'data' => $transformed->items(),
+            'meta' => [
+                'pagination' => [
+                    'current_page' => $items->currentPage(),
+                    'last_page'    => $items->lastPage(),
+                    'total'        => $items->total(),
+                ],
             ],
         ]);
     }
+
 
     public function update(ItemListingUpdateRequest $request, string $publicId)
     {
