@@ -98,7 +98,7 @@ export function PlatformAdminOrganizations() {
         other: "Other",
     }
 
-    const hasLegalInfo = (org: any) => org.authorized_rep_name || org.authorized_rep_id || org.legal_document || org.tax_id || org.license_number
+    // const hasLegalInfo = (org: any) => org.authorized_rep_name || org.authorized_rep_id || org.legal_document || org.tax_id || org.license_number
 
     // Check if a legal document URL points to an image
     const isImageDoc = (url: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(url)

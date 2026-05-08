@@ -1,5 +1,5 @@
 import { Input } from "../ui/input"
-import { Search, Download, ChevronLeft, ChevronRight, ExternalLink, Star, ShieldCheck, Receipt } from "lucide-react"
+import { Search, ChevronLeft, ChevronRight, ExternalLink, Star, ShieldCheck, Receipt } from "lucide-react"
 import { StatsCard } from "./StatsCard"
 import { PiggyBank, Megaphone, Calendar as CalendarIcon } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -12,7 +12,7 @@ export function MyDonationsPage() {
     const [currentPage, setCurrentPage] = useState(1)
     const [pagination, setPagination] = useState<{ current_page: number; last_page: number; total: number } | null>(null)
 
-    const fetchDonations = async (page = 1) => {
+    const fetchDonations = async (_page = 1) => {
         setIsLoading(true)
         try {
             const response = await api.getMyDonations()

@@ -14,7 +14,6 @@ import {
     Eye,
     X,
     ChevronDown,
-    BarChart3,
     ArrowRight,
     XCircle,
     Inbox

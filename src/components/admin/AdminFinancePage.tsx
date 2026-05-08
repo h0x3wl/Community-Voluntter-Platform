@@ -7,8 +7,7 @@ import {
     CreditCard,
     DollarSign,
     Filter,
-    ChevronDown,
-    MoreHorizontal
+    ChevronDown
 } from "lucide-react"
 import { api } from "../../lib/api"
 import { useCurrentUser } from "../../hooks/useCurrentUser"

@@ -56,7 +56,7 @@ export function OrgReceivedDonationsPage() {
 
     const [moneyDonations, setMoneyDonations] = useState<MoneyDonation[]>([])
     const [clothesDonations, setClothesDonations] = useState<ClothesDonation[]>([])
-    const [notifications, setNotifications] = useState<any[]>([])
+    const [, setNotifications] = useState<any[]>([])
     const [showNotifications, setShowNotifications] = useState(false)
 
     // Summary stats

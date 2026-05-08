@@ -8,8 +8,7 @@ import {
     DollarSign,
     ArrowRight,
     Edit3,
-    X,
-    CheckCircle2
+    X
 } from "lucide-react"
 
 import { Link } from "react-router-dom"

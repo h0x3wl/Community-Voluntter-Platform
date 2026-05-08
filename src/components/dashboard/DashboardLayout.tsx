@@ -2,8 +2,6 @@ import {
     LayoutDashboard,
     HeartHandshake,
     Shirt,
-    AlertCircle,
-    FileText,
     Trophy,
     BarChart3,
     User,

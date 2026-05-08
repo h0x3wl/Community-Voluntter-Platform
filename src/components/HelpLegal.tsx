@@ -1,5 +1,4 @@
 import { ChevronDown } from "lucide-react"
-import { useState } from "react"
 
 export function HelpLegal() {
     const helpLinks = [

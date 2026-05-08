@@ -1,7 +1,7 @@
 import { Button } from "../ui/button"
 import { Header } from "../Header"
 import { Footer } from "../Footer"
-import { Heart, Share2, Calendar, User, Clock, CheckCircle } from "lucide-react"
+import { Heart, Share2, Calendar, User, CheckCircle } from "lucide-react"
 import { Link, useParams } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { api } from "../../lib/api"

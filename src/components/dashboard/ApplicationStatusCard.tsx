@@ -11,7 +11,7 @@ export function ApplicationStatusCard({ status }: { status: string }) {
         { id: 3, label: "Result", statusTarget: ["approved", "rejected"] },
     ]
 
-    const currentIndex = stepsData.findIndex(s => s.statusTarget.includes(status))
+    // const currentIndex = stepsData.findIndex(s => s.statusTarget.includes(status))
     // Determine overall completion ratio
     let ratio = "0%"
     if (status === 'pending') ratio = "33%"

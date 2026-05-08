@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
-import { Search, UserPlus, Shield, Mail, Calendar, X, CheckCircle2, Trash2, Edit3 } from "lucide-react"
+import { Search, UserPlus, Mail, Calendar, X, CheckCircle2, Trash2, Edit3 } from "lucide-react"
 import { api } from "../../lib/api"
 import { useCurrentUser } from "../../hooks/useCurrentUser"
 
