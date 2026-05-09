@@ -32,6 +32,9 @@ export function OurStory() {
                                     src="/charity.jpg"
                                     alt="Our story illustration"
                                     className="w-70 h-auto max-w-lg mx-auto"
+                                    loading="lazy"
+                                    width="512"
+                                    height="384"
                                 />
                             </div>
                             {/* Decorative elements */}

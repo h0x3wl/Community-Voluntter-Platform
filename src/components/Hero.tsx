@@ -1,33 +1,25 @@
 import { Button } from "./ui/button"
 import { Link } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { api } from "../lib/api"
+import { useMemo } from "react"
+import { useCampaigns } from "../hooks/useCampaigns"
 
 import { useIntersectionObserver } from "../hooks/useIntersectionObserver"
 
 export function Hero() {
     const { targetRef, isIntersecting } = useIntersectionObserver()
-    const [communityCount, setCommunityCount] = useState("10k+")
+    const { campaigns } = useCampaigns()
 
-    useEffect(() => {
-        const fetchCount = async () => {
-            try {
-                const res = await api.getCampaigns()
-                const campaigns = res.data || []
-                const totalDonors = campaigns.reduce((acc: number, c: any) => acc + (c.donors_count || 0), 0)
-                if (totalDonors >= 1000000) {
-                    setCommunityCount(`${(totalDonors / 1000000).toFixed(1)}M+`)
-                } else if (totalDonors >= 1000) {
-                    setCommunityCount(`${Math.floor(totalDonors / 1000)}k+`)
-                } else if (totalDonors > 0) {
-                    setCommunityCount(`${totalDonors}+`)
-                }
-            } catch {
-                // Keep default
-            }
+    const communityCount = useMemo(() => {
+        const totalDonors = campaigns.reduce((acc: number, c: any) => acc + (c.donors_count || 0), 0)
+        if (totalDonors >= 1000000) {
+            return `${(totalDonors / 1000000).toFixed(1)}M+`
+        } else if (totalDonors >= 1000) {
+            return `${Math.floor(totalDonors / 1000)}k+`
+        } else if (totalDonors > 0) {
+            return `${totalDonors}+`
         }
-        fetchCount()
-    }, [])
+        return "10k+"
+    }, [campaigns])
 
     return (
         <section ref={targetRef as any} className="relative pt-10 pb-20 lg:pt-20 lg:pb-28 overflow-hidden">
@@ -51,13 +43,13 @@ export function Hero() {
 
                         <div className={`flex items-center justify-center lg:justify-start gap-4 transform transition-all duration-700 delay-500 ${isIntersecting ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                             <div className="flex -space-x-3">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
-                                        <img
-                                            src={`https://i.pravatar.cc/100?img=${i + 10}`}
-                                            alt="User avatar"
-                                            className="w-full h-full object-cover"
-                                        />
+                                {[
+                                    { initials: 'AH', bg: 'bg-blue-500' },
+                                    { initials: 'SK', bg: 'bg-green-500' },
+                                    { initials: 'MR', bg: 'bg-purple-500' },
+                                ].map((avatar, i) => (
+                                    <div key={i} className={`w-10 h-10 rounded-full border-2 border-white ${avatar.bg} flex items-center justify-center`}>
+                                        <span className="text-white text-xs font-bold">{avatar.initials}</span>
                                     </div>
                                 ))}
                             </div>
@@ -73,6 +65,8 @@ export function Hero() {
                                 src="/charity.jpg"
                                 alt="Happy children standing together"
                                 className="w-full h-auto max-w-lg mx-auto"
+                                width="512"
+                                height="384"
                             />
                         </div>
 
@@ -84,4 +78,3 @@ export function Hero() {
         </section>
     )
 }
-

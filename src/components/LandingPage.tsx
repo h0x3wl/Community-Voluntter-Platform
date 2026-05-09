@@ -11,24 +11,27 @@ import { Testimonial } from "./Testimonial"
 import { HelpLegal } from "./HelpLegal"
 import { Newsletter } from "./Newsletter"
 import { Footer } from "./Footer"
+import { CampaignsProvider } from "../hooks/useCampaigns"
 
 export function LandingPage() {
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900">
             <Header />
-            <main>
-                <Hero />
-                <Mission />
-                <Stats />
-                <OurStory />
-                <Team />
-                <FeaturedCampaigns />
-                <GetInvolved />
-                <MakeDonation />
-                <Testimonial />
-                <HelpLegal />
-                <Newsletter />
-            </main>
+            <CampaignsProvider>
+                <main>
+                    <Hero />
+                    <Mission />
+                    <Stats />
+                    <OurStory />
+                    <Team />
+                    <FeaturedCampaigns />
+                    <GetInvolved />
+                    <MakeDonation />
+                    <Testimonial />
+                    <HelpLegal />
+                    <Newsletter />
+                </main>
+            </CampaignsProvider>
             <Footer />
         </div>
     )

@@ -1,38 +1,25 @@
 import { Button } from "./ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card"
 import { Link } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { api } from "../lib/api"
+import { useMemo } from "react"
+import { useCampaigns } from "../hooks/useCampaigns"
 
 const categoryColors = ["blue", "green", "red", "purple", "orange"]
 
 export function FeaturedCampaigns() {
-    const [campaigns, setCampaigns] = useState<any[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const { campaigns: allCampaigns, isLoading } = useCampaigns()
 
-    useEffect(() => {
-        const fetchCampaigns = async () => {
-            try {
-                const res = await api.getCampaigns()
-                // Take the first 3 active campaigns as "featured"
-                const allCampaigns = res.data || []
-                allCampaigns.sort((a: any, b: any) => {
-                    if (a.is_urgent && !b.is_urgent) return -1
-                    if (!a.is_urgent && b.is_urgent) return 1
-                    return 0
-                })
-                const featured = allCampaigns
-                    .filter((c: any) => c.status === 'active' || c.status === 'approved')
-                    .slice(0, 3)
-                setCampaigns(featured.length > 0 ? featured : allCampaigns.slice(0, 3))
-            } catch (err) {
-                console.error("Failed to fetch featured campaigns", err)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        fetchCampaigns()
-    }, [])
+    const campaigns = useMemo(() => {
+        const sorted = [...allCampaigns].sort((a: any, b: any) => {
+            if (a.is_urgent && !b.is_urgent) return -1
+            if (!a.is_urgent && b.is_urgent) return 1
+            return 0
+        })
+        const featured = sorted
+            .filter((c: any) => c.status === 'active' || c.status === 'approved')
+            .slice(0, 3)
+        return featured.length > 0 ? featured : sorted.slice(0, 3)
+    }, [allCampaigns])
 
     const colorClasses: Record<string, { text: string; bg: string; btn: string }> = {
         blue: { text: "text-blue-600", bg: "bg-blue-500", btn: "bg-blue-500 hover:bg-blue-600" },
@@ -79,6 +66,9 @@ export function FeaturedCampaigns() {
                                             src={imageUrl}
                                             alt={campaign.title}
                                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                            loading="lazy"
+                                            width="400"
+                                            height="224"
                                         />
                                         {campaign.is_urgent && (
                                             <span className="absolute top-4 left-4 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide shadow-sm flex items-center gap-1">

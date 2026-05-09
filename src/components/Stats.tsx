@@ -1,45 +1,39 @@
 import { useIntersectionObserver } from "../hooks/useIntersectionObserver"
-import { useEffect, useState } from "react"
-import { api } from "../lib/api"
+import { useMemo } from "react"
+import { useCampaigns } from "../hooks/useCampaigns"
 
 export function Stats() {
     const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.2 })
-    const [stats, setStats] = useState([
-        { value: "0", label: "Lives Impacted", color: "text-blue-600" },
-        { value: "$0", label: "Funds Raised", color: "text-green-600" },
-        { value: "0", label: "Active Campaigns", color: "text-purple-600" },
-        { value: "0", label: "Volunteers", color: "text-orange-600" },
-    ])
+    const { campaigns } = useCampaigns()
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const res = await api.getCampaigns()
-                const campaigns = res.data || []
-                const totalRaised = campaigns.reduce((acc: number, c: any) => acc + (c.raised_cents || 0), 0) / 100
-                const activeCampaigns = campaigns.filter((c: any) => c.status === 'active').length
-                const totalDonors = campaigns.reduce((acc: number, c: any) => acc + (c.donors_count || 0), 0)
+    const stats = useMemo(() => {
+        const totalRaised = campaigns.reduce((acc: number, c: any) => acc + (c.raised_cents || 0), 0) / 100
+        const activeCampaigns = campaigns.filter((c: any) => c.status === 'active').length
+        const totalDonors = campaigns.reduce((acc: number, c: any) => acc + (c.donors_count || 0), 0)
 
-                // Format numbers nicely
-                const formatNum = (n: number) => {
-                    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M+`
-                    if (n >= 1000) return `${(n / 1000).toFixed(0)}k+`
-                    return n.toString()
-                }
-
-                setStats([
-                    { value: `$${formatNum(campaigns.length > 0 ? (totalRaised / campaigns.length) : 0)}`, label: "Avg. Goal Reached", color: "text-blue-600" },
-                    { value: `$${formatNum(totalRaised)}`, label: "Funds Raised", color: "text-green-600" },
-                    { value: activeCampaigns.toString(), label: "Active Campaigns", color: "text-purple-600" },
-                    { value: formatNum(totalDonors), label: "Donors & Volunteers", color: "text-orange-600" },
-                ])
-            } catch (err) {
-                // Keep defaults if API fails
-                console.error("Failed to fetch stats", err)
-            }
+        // Format numbers nicely
+        const formatNum = (n: number) => {
+            if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M+`
+            if (n >= 1000) return `${(n / 1000).toFixed(0)}k+`
+            return n.toString()
         }
-        fetchStats()
-    }, [])
+
+        if (campaigns.length === 0) {
+            return [
+                { value: "0", label: "Lives Impacted", color: "text-blue-600" },
+                { value: "$0", label: "Funds Raised", color: "text-green-600" },
+                { value: "0", label: "Active Campaigns", color: "text-purple-600" },
+                { value: "0", label: "Volunteers", color: "text-orange-600" },
+            ]
+        }
+
+        return [
+            { value: `$${formatNum(totalRaised / campaigns.length)}`, label: "Avg. Goal Reached", color: "text-blue-600" },
+            { value: `$${formatNum(totalRaised)}`, label: "Funds Raised", color: "text-green-600" },
+            { value: activeCampaigns.toString(), label: "Active Campaigns", color: "text-purple-600" },
+            { value: formatNum(totalDonors), label: "Donors & Volunteers", color: "text-orange-600" },
+        ]
+    }, [campaigns])
 
     return (
         <section ref={targetRef as any} className="py-20 bg-white">

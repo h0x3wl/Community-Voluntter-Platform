@@ -4,10 +4,29 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Campaign extends Model
 {
     use SoftDeletes;
+
+    /**
+     * Clear campaigns cache whenever a campaign is created, updated, or deleted.
+     */
+    protected static function booted(): void
+    {
+        $clearCache = function (Campaign $campaign) {
+            // Clear the default index cache
+            Cache::forget('campaigns_index_' . md5(url('/api/v1/campaigns')));
+            // Clear this campaign's detail cache
+            if ($campaign->share_slug) {
+                Cache::forget('campaign_detail_' . $campaign->share_slug);
+            }
+        };
+
+        static::saved($clearCache);
+        static::deleted($clearCache);
+    }
 
     protected $fillable = [
         'public_id',

@@ -7,11 +7,9 @@ export function Testimonial() {
                         "This organization changed my life. The support was immediate and the impact was everlasting."
                     </p>
                     <footer className="flex flex-col items-center">
-                        <img
-                            src="https://i.pravatar.cc/150?img=9"
-                            alt="Maria J."
-                            className="w-16 h-16 rounded-full border-2 border-white shadow-md mb-3"
-                        />
+                        <div className="w-16 h-16 rounded-full border-2 border-white shadow-md mb-3 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                            <span className="text-white text-xl font-bold">MJ</span>
+                        </div>
                         <cite className="not-italic font-bold text-gray-900 block">Maria J.</cite>
                         <span className="text-sm text-gray-500">Beneficiary</span>
                     </footer>

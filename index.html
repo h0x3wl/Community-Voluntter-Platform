@@ -4,11 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>community-platform</title>
+    <meta name="description" content="Awn Community Volunteer Platform — Empowering communities through donations, volunteering, and campaigns for a brighter tomorrow." />
+    <title>Awn عَوْن — Community Volunteer Platform</title>
+
+    <!-- Preconnect to API backend to save DNS + TLS time -->
+    <link rel="preconnect" href="http://127.0.0.1:8000" crossorigin />
+
+    <!-- Preload the hero image (above the fold, critical for LCP) -->
+    <link rel="preload" as="image" href="/charity.jpg" />
+
+    <!-- Preload Inter font CSS for faster text rendering -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
- 
