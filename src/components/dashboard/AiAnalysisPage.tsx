@@ -18,12 +18,26 @@ import {
     Package
 } from "lucide-react"
 
-const CLOTHES_CATEGORIES = [
-    "T-shirt/top", "Trouser", "Pullover", "Dress", "Coat",
-    "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"
-]
+
 
 type Step = "upload" | "analyzing" | "results"
+
+const HF_SPACE_URL = "https://ahmedtem-clothes.hf.space/api/predict"
+
+/** Convert a File to a base64 data-URI string */
+function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+    })
+}
+
+interface AiConfidence {
+    label: string
+    confidence: number
+}
 
 export function AiAnalysisPage() {
     const [step, setStep] = useState<Step>("upload")
@@ -32,6 +46,7 @@ export function AiAnalysisPage() {
     const [isDragging, setIsDragging] = useState(false)
     const [aiCategory, setAiCategory] = useState("")
     const [aiConfidence, setAiConfidence] = useState(0)
+    const [allConfidences, setAllConfidences] = useState<AiConfidence[]>([])
     const [orgs, setOrgs] = useState<any[]>([])
     const [selectedOrg, setSelectedOrg] = useState<string>("")
     const [orgDropdownOpen, setOrgDropdownOpen] = useState(false)
@@ -60,21 +75,58 @@ export function AiAnalysisPage() {
         return () => document.removeEventListener("mousedown", handler)
     }, [])
 
-    const handleFile = useCallback((f: File) => {
+    const handleFile = useCallback(async (f: File) => {
         if (!f.type.startsWith("image/")) { setError("Please upload an image file."); return }
         setError("")
         setFile(f)
         setPreview(URL.createObjectURL(f))
         setStep("analyzing")
-        // Simulate AI classification
-        setTimeout(() => {
-            const idx = Math.floor(Math.random() * CLOTHES_CATEGORIES.length)
-            const conf = 85 + Math.random() * 14
-            setAiCategory(CLOTHES_CATEGORIES[idx])
-            setAiConfidence(parseFloat(conf.toFixed(1)))
-            setTitle(CLOTHES_CATEGORIES[idx])
+
+        try {
+            // Convert image to base64 for the Gradio API
+            const base64 = await fileToBase64(f)
+
+            // Call the Hugging Face Space Gradio API
+            const response = await fetch(HF_SPACE_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ data: [base64] }),
+            })
+
+            if (!response.ok) {
+                throw new Error(
+                    response.status === 503
+                        ? "AI model is waking up — please try again in ~30 seconds."
+                        : `AI service returned an error (${response.status}). Please try again.`
+                )
+            }
+
+            const result = await response.json()
+
+            // Gradio Label component returns: { label: "...", confidences: [{ label, confidence }, ...] }
+            const prediction = result?.data?.[0]
+            if (!prediction) throw new Error("No prediction returned from the AI model.")
+
+            const topLabel: string = prediction.label || "Unknown"
+            const confidences: AiConfidence[] = (prediction.confidences || []).map(
+                (c: { label: string; confidence: number }) => ({
+                    label: c.label,
+                    confidence: Math.round(c.confidence * 100 * 10) / 10, // e.g. 0.95 → 95.0
+                })
+            )
+
+            const topConfidence = confidences.length > 0 ? confidences[0].confidence : 100
+
+            setAiCategory(topLabel)
+            setAiConfidence(topConfidence)
+            setAllConfidences(confidences)
+            setTitle(topLabel)
             setStep("results")
-        }, 2200)
+        } catch (err: any) {
+            console.error("AI classification error:", err)
+            setError(err.message || "Failed to classify the image. Please try again.")
+            setStep("upload")
+        }
     }, [])
 
     const handleDrop = useCallback((e: React.DragEvent) => {
@@ -108,8 +160,8 @@ export function AiAnalysisPage() {
 
     const resetForm = () => {
         setStep("upload"); setFile(null); setPreview(""); setAiCategory("")
-        setAiConfidence(0); setTitle(""); setDescription(""); setCondition("good")
-        setSelectedOrg(""); setSubmitted(false); setError("")
+        setAiConfidence(0); setAllConfidences([]); setTitle(""); setDescription("")
+        setCondition("good"); setSelectedOrg(""); setSubmitted(false); setError("")
     }
 
     const selectedOrgData = orgs.find(o => o.public_id === selectedOrg)
@@ -212,12 +264,30 @@ export function AiAnalysisPage() {
                                         </div>
                                         <h4 className="text-xl font-bold text-gray-900 mb-3">{aiCategory}</h4>
                                         <div className="mb-1 flex justify-between text-xs">
-                                            <span className="text-gray-500 font-medium">Confidence</span>
+                                            <span className="text-gray-500 font-medium">Top Confidence</span>
                                             <span className="font-bold text-gray-900">{aiConfidence}%</span>
                                         </div>
                                         <div className="w-full bg-gray-100 rounded-full h-1.5">
                                             <div className="bg-blue-600 h-1.5 rounded-full transition-all duration-700" style={{ width: `${aiConfidence}%` }} />
                                         </div>
+                                        {/* All confidence scores */}
+                                        {allConfidences.length > 1 && (
+                                            <div className="mt-4 space-y-2">
+                                                <span className="text-xs text-gray-400 font-medium uppercase">All Predictions</span>
+                                                {allConfidences.map((c, i) => (
+                                                    <div key={c.label} className="flex items-center gap-2">
+                                                        <span className={`text-xs w-24 truncate ${i === 0 ? "font-bold text-gray-900" : "text-gray-500"}`}>{c.label}</span>
+                                                        <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+                                                            <div
+                                                                className={`h-1.5 rounded-full transition-all duration-700 ${i === 0 ? "bg-blue-600" : "bg-gray-300"}`}
+                                                                style={{ width: `${c.confidence}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className={`text-xs w-12 text-right ${i === 0 ? "font-bold text-gray-900" : "text-gray-400"}`}>{c.confidence}%</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
