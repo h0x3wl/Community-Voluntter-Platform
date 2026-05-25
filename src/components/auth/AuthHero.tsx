@@ -2,7 +2,7 @@ export function AuthHero() {
     return (
         <div className="absolute inset-0 h-full w-full">
             <img
-                src="/auth-hero.png"
+                src="/login.jpg"
                 alt="Volunteers planting trees"
                 className="h-full w-full object-cover"
             />
@@ -13,9 +13,9 @@ export function AuthHero() {
 
                 <div className="flex items-center gap-3">
                     <div className="flex -space-x-3">
-                        <img src="https://i.pravatar.cc/100?img=9" className="w-10 h-10 rounded-full border-2 border-white" alt="User" />
-                        <img src="https://i.pravatar.cc/100?img=12" className="w-10 h-10 rounded-full border-2 border-white" alt="User" />
-                        <img src="https://i.pravatar.cc/100?img=15" className="w-10 h-10 rounded-full border-2 border-white" alt="User" />
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" className="w-10 h-10 rounded-full border-2 border-white" alt="User" />
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" className="w-10 h-10 rounded-full border-2 border-white" alt="User" />
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" className="w-10 h-10 rounded-full border-2 border-white" alt="User" />
                     </div>
                     <span className="text-sm font-medium">Trusted by 10,000+ changemakers</span>
                 </div>

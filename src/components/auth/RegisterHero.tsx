@@ -4,7 +4,7 @@ export function RegisterHero() {
     return (
         <div className="absolute inset-0 h-full w-full">
             <img
-                src="/register-hero.png"
+                src="/Register.jpg"
                 alt="Volunteers planting trees"
                 className="h-full w-full object-cover"
             />
@@ -21,7 +21,7 @@ export function RegisterHero() {
                     <div className="flex -space-x-3">
                         {[1, 2, 3].map((i) => (
                             <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-600 overflow-hidden">
-                                <img src={`https://i.pravatar.cc/100?img=${i + 20}`} alt="User" />
+                                <img src={`https://randomuser.me/api/portraits/women/${i + 60}.jpg`} alt="User" />
                             </div>
                         ))}
                     </div>

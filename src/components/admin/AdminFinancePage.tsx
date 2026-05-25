@@ -14,7 +14,6 @@ import { useCurrentUser } from "../../hooks/useCurrentUser"
 
 export function AdminFinancePage() {
     const { orgId } = useCurrentUser()
-    const [timeRange, setTimeRange] = useState("30days")
     const [finance, setFinance] = useState<any>(null)
     const [donors, setDonors] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -71,9 +70,9 @@ export function AdminFinancePage() {
     const transactions = donors?.recent_donors?.slice(0, 6)?.map((d: any, i: number) => ({
         id: `#TRX-${1000 + i}`,
         name: d.donor_name || "Anonymous",
-        date: d.last_donated_at ? new Date(d.last_donated_at).toLocaleDateString() : "—",
+        date: d.donated_at ? new Date(d.donated_at).toLocaleDateString() : (d.last_donated_at ? new Date(d.last_donated_at).toLocaleDateString() : "—"),
         campaign: d.campaign || "General",
-        amount: (d.total_cents || 0) / 100,
+        amount: (d.amount_cents || d.total_cents || 0) / 100,
         status: "Success",
     })) || []
 
@@ -102,25 +101,6 @@ export function AdminFinancePage() {
                         <Download className="w-4 h-4 mr-2" />
                         Export Report
                     </Button>
-                </div>
-            </div>
-
-            {/* Time Range Tabs */}
-            <div className="border-b border-gray-200">
-                <div className="flex gap-6">
-                    {["all", "30days", "7days"].map((range) => (
-                        <button
-                            key={range}
-                            onClick={() => setTimeRange(range)}
-                            className={`pb-3 border-b-2 text-sm font-medium transition-colors ${
-                                timeRange === range
-                                    ? "border-blue-600 text-blue-600 font-bold"
-                                    : "border-transparent text-gray-500 hover:text-gray-900"
-                            }`}
-                        >
-                            {range === "all" ? "All Time" : range === "30days" ? "Last 30 Days" : "Last 7 Days"}
-                        </button>
-                    ))}
                 </div>
             </div>
 
