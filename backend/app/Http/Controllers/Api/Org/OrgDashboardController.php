@@ -122,6 +122,7 @@ class OrgDashboardController extends ApiController
                 'donations.public_id',
                 'donations.donor_name',
                 'donations.donor_email',
+                'donations.is_anonymous',
                 'donations.amount_cents',
                 'donations.paid_at as donated_at',
                 'donations.status',
@@ -131,10 +132,11 @@ class OrgDashboardController extends ApiController
             ->limit(100)
             ->get()
             ->map(function ($d) {
+                $isAnon = (bool) ($d->is_anonymous ?? false);
                 return [
                     'public_id'      => $d->public_id,
-                    'donor_name'     => $d->donor_name ?: 'Anonymous',
-                    'donor_email'    => $d->donor_email,
+                    'donor_name'     => $isAnon ? 'Anonymous' : ($d->donor_name ?: 'Anonymous'),
+                    'donor_email'    => $isAnon ? null : $d->donor_email,
                     'amount_cents'   => (int) $d->amount_cents,
                     'campaign'       => $d->campaign_title ?: 'General Fund',
                     'donated_at'     => $d->donated_at,

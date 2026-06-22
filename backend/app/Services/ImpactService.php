@@ -38,9 +38,13 @@ class ImpactService
                 'progress_ratio' => $progress,
             ],
             'milestones' => [
-                ['label' => 'Bronze Helper', 'threshold_cents' => 2500, 'achieved' => $donationTotal >= 2500],
-                ['label' => 'Silver Helper', 'threshold_cents' => 5000, 'achieved' => $donationTotal >= 5000],
-                ['label' => 'Gold Helper', 'threshold_cents' => 10000, 'achieved' => $donationTotal >= 10000],
+                ['label' => 'Helping Hand', 'threshold_cents' => 2500, 'achieved' => $donationTotal >= 2500],
+                ['label' => 'Bronze Helper', 'threshold_cents' => 5000, 'achieved' => $donationTotal >= 5000],
+                ['label' => 'Silver Helper', 'threshold_cents' => 10000, 'achieved' => $donationTotal >= 10000],
+                ['label' => 'Gold Helper', 'threshold_cents' => 25000, 'achieved' => $donationTotal >= 25000],
+                ['label' => 'Platinum Helper', 'threshold_cents' => 50000, 'achieved' => $donationTotal >= 50000],
+                ['label' => 'Diamond Helper', 'threshold_cents' => 100000, 'achieved' => $donationTotal >= 100000],
+                ['label' => 'Legendary Helper', 'threshold_cents' => 500000, 'achieved' => $donationTotal >= 500000],
             ],
             'highlights' => [
                 ['message' => 'Thank you for supporting a campaign this month!', 'date' => $monthDate->toDateString()],

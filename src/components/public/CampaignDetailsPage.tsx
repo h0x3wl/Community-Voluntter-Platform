@@ -72,13 +72,29 @@ export function CampaignDetailsPage() {
                     <img src={campaign.images?.[0]?.url || `https://picsum.photos/seed/${id}/1200/400`} alt={campaign.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end">
                         <div className="container mx-auto px-4 pb-12">
-                            <span className="inline-block px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
-                                {campaign.category?.name || "Community"}
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2 mb-4">
+                                <span className="inline-block px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+                                    {campaign.category?.name || "Community"}
+                                </span>
+                                {campaign.is_urgent && (
+                                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                        Urgent
+                                    </span>
+                                )}
+                            </div>
                             <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 text-shadow-sm">{campaign.title}</h1>
                             <div className="flex flex-wrap items-center gap-6 text-white text-sm font-medium">
                                 <span className="flex items-center gap-2"><User className="w-4 h-4" /> Organized by {campaign.organization?.name || "Hope Foundation"}</span>
-                                <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> Created Recently</span>
+                                <span className="flex items-center gap-2">
+                                    <Calendar className="w-4 h-4" />
+                                    {campaign.ends_at
+                                        ? `Ends ${new Date(campaign.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                                        : campaign.days_left != null
+                                            ? `${campaign.days_left} days left`
+                                            : 'No end date set'
+                                    }
+                                </span>
                             </div>
                         </div>
                     </div>

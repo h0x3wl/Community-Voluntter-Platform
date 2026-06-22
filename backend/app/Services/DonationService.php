@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Notifications\DonationSuccessfulNotification;
 use App\Notifications\OrgDonationReceivedNotification;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -36,17 +37,20 @@ class DonationService
 
         $amountCents = $payload['amount_cents'];
 
+        $isAnonymous = filter_var($payload['anonymous'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
         $donation = Donation::create([
             'public_id' => Str::uuid(),
             'campaign_id' => $campaign?->id,
             'organization_id' => $organization->id,
             'donor_user_id' => $donorUserId,
-            'donor_name' => $payload['donor_name'] ?? null,
-            'donor_email' => $payload['donor_email'] ?? null,
+            'donor_name' => $isAnonymous ? null : ($payload['donor_name'] ?? null),
+            'donor_email' => $isAnonymous ? null : ($payload['donor_email'] ?? null),
             'amount_cents' => $amountCents,
             'currency' => strtoupper($payload['currency']),
             'frequency' => 'one_time',
             'status' => 'requires_payment',
+            'is_anonymous' => $isAnonymous,
         ]);
 
         $intent = $this->stripe->createPaymentIntent(
@@ -95,6 +99,7 @@ class DonationService
             if ($donation->campaign) {
                 $donation->campaign->increment('raised_cents', $donation->amount_cents);
                 $donation->campaign->increment('donors_count');
+                $this->clearCampaignCache($donation->campaign);
             }
 
             if ($donation->donor_user_id) {
@@ -208,6 +213,7 @@ class DonationService
             if ($campaign) {
                 $campaign->increment('raised_cents', $amountCents);
                 $campaign->increment('donors_count');
+                $this->clearCampaignCache($campaign);
             }
 
             // Always award points/XP even for anonymous donations (tracked privately)
@@ -227,6 +233,20 @@ class DonationService
             'donation' => $donation,
             'card_brand' => $brand,
         ];
+    }
+
+    /**
+     * Clear public campaign caches so donation shows immediately.
+     */
+    private function clearCampaignCache(?Campaign $campaign): void
+    {
+        // Bust the campaigns list cache (all variations)
+        Cache::forget('campaigns_index_' . md5(url('/api/campaigns')));
+
+        // Bust the detail page cache for this campaign
+        if ($campaign?->share_slug) {
+            Cache::forget('campaign_detail_' . $campaign->share_slug);
+        }
     }
 
     /**

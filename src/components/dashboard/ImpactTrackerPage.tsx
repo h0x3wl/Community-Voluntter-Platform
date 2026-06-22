@@ -244,24 +244,36 @@ export function ImpactTrackerPage() {
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {(impact?.milestones || []).slice(0, 2).map((ms: any, i: number) => {
-                        const ratio = ms.threshold_cents ? Math.min((impact?.monthly_goal_progress?.current_cents || 0) / ms.threshold_cents, 1) : 0
-                        return (
-                            <MilestoneCard
-                                key={ms.label || i}
-                                title={ms.label}
-                                percentage={ratio * 100}
-                                description={ms.achieved ? "Milestone achieved! Incredible work." : `Keep going to unlock the ${ms.label} badge.`}
-                                colorClass={ms.achieved ? "text-green-500" : "text-blue-500"}
-                                bgBarClass={ms.achieved ? "bg-green-500" : "bg-blue-500"}
-                            />
-                        )
-                    })}
-                    {(!impact?.milestones || impact.milestones.length === 0) && (
-                        <div className="col-span-full py-8 text-center bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-500">
-                            No milestones active right now. 
-                        </div>
-                    )}
+                    {(() => {
+                        const allMs = impact?.milestones || [];
+                        // Show the last achieved + next 3 upcoming (up to 4 cards)
+                        const achieved = allMs.filter((ms: any) => ms.achieved);
+                        const upcoming = allMs.filter((ms: any) => !ms.achieved);
+                        const display = [
+                            ...(achieved.length > 0 ? [achieved[achieved.length - 1]] : []),
+                            ...upcoming.slice(0, 3),
+                        ];
+                        if (display.length === 0) {
+                            return (
+                                <div className="col-span-full py-8 text-center bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-500">
+                                    No milestones active right now. Start donating to unlock your first milestone!
+                                </div>
+                            );
+                        }
+                        return display.map((ms: any, i: number) => {
+                            const ratio = ms.threshold_cents ? Math.min((impact?.monthly_goal_progress?.current_cents || 0) / ms.threshold_cents, 1) : 0;
+                            return (
+                                <MilestoneCard
+                                    key={ms.label || i}
+                                    title={ms.label}
+                                    percentage={ratio * 100}
+                                    description={ms.achieved ? "🎉 Milestone achieved! Incredible work." : `Keep going to unlock the ${ms.label} milestone.`}
+                                    colorClass={ms.achieved ? "text-green-500" : "text-blue-500"}
+                                    bgBarClass={ms.achieved ? "bg-green-500" : "bg-blue-500"}
+                                />
+                            );
+                        });
+                    })()}
                 </div>
             </div>
 

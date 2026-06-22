@@ -11,7 +11,7 @@ class CampaignResource extends JsonResource
     {
         $daysLeft = null;
         if ($this->ends_at) {
-            $daysLeft = now()->diffInDays($this->ends_at, false);
+            $daysLeft = max(0, (int) now()->startOfDay()->diffInDays($this->ends_at->startOfDay(), false));
         }
 
         return [
@@ -25,6 +25,8 @@ class CampaignResource extends JsonResource
             'raised_cents' => $this->raised_cents,
             'donors_count' => $this->donors_count,
             'days_left' => $daysLeft,
+            'starts_at' => optional($this->starts_at)->toDateString(),
+            'ends_at' => optional($this->ends_at)->toDateString(),
             'location' => $this->location_text,
             'organization' => $this->whenLoaded('organization', function () {
                 return [
