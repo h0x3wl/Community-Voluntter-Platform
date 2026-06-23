@@ -1,5 +1,3 @@
-import { Button } from "./ui/button"
-
 export function OurStory() {
     return (
         <section className="py-20 bg-white overflow-hidden">
@@ -9,20 +7,14 @@ export function OurStory() {
                         <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-6 sm:text-4xl">
                             Our Story
                         </h2>
-                        <div className="space-y-4 text-lg text-gray-600">
+                        <div className="space-y-4 text-lg text-gray-600 leading-relaxed">
                             <p>
-                                Founded in 2010, CharityOrg began as a small initiative in a local community.
-                                Witnessing the struggle for basic necessities, a group of friends decided to take action.
-                                What started as a weekend volunteer project has now grown into a global movement.
+                                <span className="font-semibold text-gray-800">Awn Community</span> is transforming the way the world gives, empowering people to make a difference through <span className="font-semibold text-gray-800">innovation and passion</span>. Our team is driven by a shared purpose to create meaningful impact, pushing boundaries to build a platform that connects communities through help.
                             </p>
                             <p>
-                                Today, we work in over 120 countries, bringing hope and tangible change to millions of lives.
-                                Our transparent approach helps ensure that your donation makes the maximum impact possible.
+                                We foster an environment of <span className="font-semibold text-gray-800">creativity and belonging</span> where velocity and collaboration fuel progress — where every team member plays a role in shaping the <span className="font-semibold text-gray-800">future of giving</span>.
                             </p>
                         </div>
-                        <Button variant="link" className="mt-6 px-0 text-primary text-lg font-semibold h-auto">
-                            Read full story &rarr;
-                        </Button>
                     </div>
 
                     <div className="flex-1 order-1 lg:order-2">

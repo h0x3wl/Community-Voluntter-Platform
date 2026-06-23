@@ -11,7 +11,7 @@ export function Team() {
         },
         {
             name: "Hossam Wael",
-            role: "Frontend",
+            role: "Backend",
         },
         {
             name: "Mohaned Yasser",

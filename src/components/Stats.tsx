@@ -15,7 +15,7 @@ export function Stats() {
         const formatNum = (n: number) => {
             if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M+`
             if (n >= 1000) return `${(n / 1000).toFixed(0)}k+`
-            return n.toString()
+            return Number.isInteger(n) ? n.toString() : n.toFixed(1)
         }
 
         if (campaigns.length === 0) {
@@ -28,10 +28,10 @@ export function Stats() {
         }
 
         return [
-            { value: `$${formatNum(totalRaised / campaigns.length)}`, label: "Avg. Goal Reached", color: "text-blue-600" },
+            { value: `$${formatNum(totalRaised / campaigns.length)}`, label: "Avg. Donation", color: "text-blue-600" },
             { value: `$${formatNum(totalRaised)}`, label: "Funds Raised", color: "text-green-600" },
             { value: activeCampaigns.toString(), label: "Active Campaigns", color: "text-purple-600" },
-            { value: formatNum(totalDonors), label: "Donors & Volunteers", color: "text-orange-600" },
+            { value: formatNum(totalDonors), label: "Users", color: "text-orange-600" },
         ]
     }, [campaigns])
 
