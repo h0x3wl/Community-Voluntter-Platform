@@ -69,7 +69,7 @@ export function CampaignDetailsPage() {
             <main className="flex-1 pb-20">
                 {/* Hero / Image */}
                 <div className="w-full h-[400px] relative bg-gray-100">
-                    <img src={campaign.images?.[0]?.url || `https://picsum.photos/seed/${id}/1200/400`} alt={campaign.title} className="w-full h-full object-cover" />
+                    <img src={campaign.images?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(campaign.title || 'Campaign')}&background=3b82f6&color=fff&size=1200&font-size=0.33&bold=true`} alt={campaign.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end">
                         <div className="container mx-auto px-4 pb-12">
                             <div className="flex flex-wrap items-center gap-2 mb-4">

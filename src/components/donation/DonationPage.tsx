@@ -608,7 +608,7 @@ function DonationPageInner({ stripe, elements }: { stripe?: any; elements?: any 
                             >
                                 <div className={`w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden ${index === 0 ? "bg-green-100" : "bg-orange-100"}`}>
                                     <img
-                                        src={`https://picsum.photos/seed/${campaign.public_id}/100/100`}
+                                        src={campaign.images?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(campaign.title || 'Campaign')}&background=3b82f6&color=fff&size=100&font-size=0.33&bold=true`}
                                         className="w-full h-full object-cover mix-blend-multiply opacity-80 group-hover:opacity-100 transition-opacity"
                                         alt={campaign.title}
                                     />

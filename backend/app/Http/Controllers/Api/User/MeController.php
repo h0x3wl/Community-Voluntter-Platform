@@ -9,13 +9,19 @@ use App\Http\Requests\Me\UpdatePasswordRequest;
 use App\Http\Requests\Me\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\UserNotificationPreference;
+use App\Services\RewardService;
 use Illuminate\Support\Facades\Storage;
 
 class MeController extends ApiController
 {
-    public function show()
+    public function show(RewardService $rewards)
     {
-        $user = request()->user()->load('badges');
+        $user = request()->user();
+
+        // Evaluate badges so any newly-qualified badges are awarded on the spot
+        $rewards->evaluateBadges($user);
+
+        $user->load('badges');
         return $this->respond(new UserResource($user));
     }
 

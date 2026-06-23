@@ -41,7 +41,7 @@ class RewardService
         $this->evaluateBadges($user->fresh());
     }
 
-    private function evaluateBadges(User $user): void
+    public function evaluateBadges(User $user): void
     {
         $totalDonatedCents = $user->total_donated_cents;
         $donationCount = $user->donation_count;

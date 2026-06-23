@@ -514,7 +514,7 @@ export function AdminCampaignsPage() {
                             <div key={camp.public_id || i} className={`bg-white rounded-2xl border ${camp.is_urgent ? 'border-red-300 shadow-red-500/10' : 'border-gray-100'} shadow-sm overflow-hidden flex flex-col group`}>
                                 <Link to={`/campaigns/${camp.share_slug || camp.public_id}`} className="h-40 relative overflow-hidden bg-gray-100 flex items-center justify-center block">
                                     <img
-                                        src={camp.images?.[0]?.url || `https://picsum.photos/seed/${camp.public_id || i}/400/300`}
+                                        src={camp.images?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(camp.title || 'Campaign')}&background=3b82f6&color=fff&size=400&font-size=0.33&bold=true`}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         alt={camp.title}
                                     />

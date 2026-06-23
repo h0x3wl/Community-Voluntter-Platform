@@ -56,7 +56,7 @@ export function FeaturedCampaigns() {
                             const progress = Math.min((raised / goal) * 100, 100)
                             const color = categoryColors[index % categoryColors.length]
                             const colors = colorClasses[color]
-                            const imageUrl = campaign.images?.[0]?.url || `https://picsum.photos/seed/${campaign.public_id || index}/800/600`
+                            const imageUrl = campaign.images?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(campaign.title || 'Campaign')}&background=3b82f6&color=fff&size=800&font-size=0.33&bold=true`
                             const categoryName = campaign.category?.name || "Community"
 
                             return (

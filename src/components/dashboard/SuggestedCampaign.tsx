@@ -12,7 +12,7 @@ export function SuggestedCampaign({ campaign }: { campaign?: any }) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col group">
             <div className="h-48 overflow-hidden relative bg-gray-100 flex items-center justify-center">
                 <img
-                    src={campaign.images?.[0]?.url || `https://picsum.photos/seed/${campaign.public_id || 'new'}/400/300`}
+                    src={campaign.images?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(campaign.title || 'Campaign')}&background=3b82f6&color=fff&size=400&font-size=0.33&bold=true`}
                     alt={campaign.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
