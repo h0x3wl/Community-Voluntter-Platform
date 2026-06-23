@@ -68,8 +68,15 @@ export function AllCampaignsPage() {
 
         // Refetch when the user navigates back to this tab/page (e.g. after donating)
         const onFocus = () => fetchAll()
+        const onVisibility = () => {
+            if (document.visibilityState === 'visible') fetchAll()
+        }
         window.addEventListener("focus", onFocus)
-        return () => window.removeEventListener("focus", onFocus)
+        document.addEventListener("visibilitychange", onVisibility)
+        return () => {
+            window.removeEventListener("focus", onFocus)
+            document.removeEventListener("visibilitychange", onVisibility)
+        }
     }, [])
 
     // ── Filtering logic ──────────────────────────────────────────────

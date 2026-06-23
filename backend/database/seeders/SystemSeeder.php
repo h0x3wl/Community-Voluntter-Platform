@@ -35,7 +35,10 @@ class SystemSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            Category::create($category);
+            Category::firstOrCreate(
+                ['slug' => $category['slug']],
+                $category
+            );
         }
     }
 
@@ -49,7 +52,10 @@ class SystemSeeder extends Seeder
         ];
 
         foreach ($rules as $rule) {
-            RewardRule::create($rule);
+            RewardRule::firstOrCreate(
+                ['code' => $rule['code']],
+                $rule
+            );
         }
     }
 
@@ -79,10 +85,13 @@ class SystemSeeder extends Seeder
         ];
 
         foreach ($badges as $badge) {
-            Badge::create(array_merge($badge, [
-                'icon_url' => 'https://ui-avatars.com/api/?name=' . urlencode($badge['name']) . '&background=ffedd5&color=ea580c&bold=true&size=64',
-                'is_active' => true,
-            ]));
+            Badge::updateOrCreate(
+                ['code' => $badge['code']],
+                array_merge($badge, [
+                    'icon_url' => 'https://ui-avatars.com/api/?name=' . urlencode($badge['name']) . '&background=ffedd5&color=ea580c&bold=true&size=64',
+                    'is_active' => true,
+                ])
+            );
         }
     }
 }

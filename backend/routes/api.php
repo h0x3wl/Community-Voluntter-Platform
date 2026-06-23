@@ -56,6 +56,47 @@ Route::prefix('v1')->group(function () {
         return response()->json(['message' => 'Admin account verified and recreated if missing. email: admin@example.com / pass: password']);
     });
 
+    Route::get('/seed-badges', function () {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\SystemSeeder',
+            '--force' => true,
+        ]);
+
+        // Retroactively evaluate and award badges to all qualifying users
+        $allBadges = \App\Models\Badge::where('is_active', true)->get();
+        $users = \App\Models\User::where('donation_count', '>', 0)
+            ->orWhere('total_donated_cents', '>', 0)
+            ->get();
+        $awarded = 0;
+        foreach ($users as $user) {
+            $uniqueCampaigns = \App\Models\Donation::where('donor_user_id', $user->id)
+                ->where('status', 'succeeded')
+                ->whereNotNull('campaign_id')
+                ->distinct('campaign_id')
+                ->count('campaign_id');
+            foreach ($allBadges as $badge) {
+                $qualified = match ($badge->criteria_type) {
+                    'donation_total' => $user->total_donated_cents >= $badge->criteria_value,
+                    'donation_count' => $user->donation_count >= $badge->criteria_value,
+                    'campaign_count' => $uniqueCampaigns >= $badge->criteria_value,
+                    default => false,
+                };
+                if ($qualified) {
+                    $ub = \App\Models\UserBadge::firstOrCreate(
+                        ['user_id' => $user->id, 'badge_id' => $badge->id],
+                        ['awarded_at' => now()]
+                    );
+                    if ($ub->wasRecentlyCreated) $awarded++;
+                }
+            }
+        }
+
+        $count = $allBadges->count();
+        return response()->json([
+            'message' => "System data seeded. {$count} badges available, {$awarded} new badges awarded retroactively.",
+        ]);
+    });
+
     Route::get('/campaigns', [CampaignController::class, 'index']);
     Route::get('/campaigns/{share_slug}', [CampaignController::class, 'show']);
     Route::get('/opportunities', [OpportunityController::class, 'index']);

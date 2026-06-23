@@ -15,7 +15,8 @@ class MeController extends ApiController
 {
     public function show()
     {
-        return $this->respond(new UserResource(request()->user()));
+        $user = request()->user()->load('badges');
+        return $this->respond(new UserResource($user));
     }
 
     public function update(UpdateProfileRequest $request)

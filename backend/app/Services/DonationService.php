@@ -240,8 +240,8 @@ class DonationService
      */
     private function clearCampaignCache(?Campaign $campaign): void
     {
-        // Bust the campaigns list cache (all variations)
-        Cache::forget('campaigns_index_' . md5(url('/api/campaigns')));
+        // Bust the campaigns list cache (the default unfiltered listing)
+        Cache::forget('campaigns_index_' . md5(url('/api/v1/campaigns')));
 
         // Bust the detail page cache for this campaign
         if ($campaign?->share_slug) {

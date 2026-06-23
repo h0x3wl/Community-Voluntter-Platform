@@ -143,13 +143,13 @@ export function BadgesViewAllPage() {
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                                 {badges.map((badge: any) => {
-                                    const earnedBadgeInfo = user?.badges?.find((ub: any) => ub.id === badge.id || ub.code === badge.code);
+                                    const earnedBadgeInfo = user?.badges?.find((ub: any) => ub.code === badge.code);
                                     const isEarned = !!earnedBadgeInfo;
                                     const progress = getBadgeProgress(badge, user);
 
                                     return (
                                         <div 
-                                            key={badge.id || badge.code} 
+                                            key={badge.code} 
                                             className={cn(
                                                 "flex flex-col items-center justify-start p-6 border rounded-2xl transition-all h-full text-center group relative overflow-hidden",
                                                 isEarned 

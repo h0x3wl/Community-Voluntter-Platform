@@ -10,7 +10,16 @@ class BadgeController extends ApiController
     {
         $badges = Badge::where('is_active', true)
             ->orderBy('display_order')
-            ->get();
+            ->get()
+            ->map(fn ($b) => [
+                'code' => $b->code,
+                'name' => $b->name,
+                'description' => $b->description,
+                'criteria_type' => $b->criteria_type,
+                'criteria_value' => $b->criteria_value,
+                'icon_url' => $b->icon_url,
+                'display_order' => $b->display_order,
+            ]);
             
         return $this->respond($badges);
     }
