@@ -2,7 +2,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Eye, EyeOff, HandHeart, Building2, Upload, UserCheck, X, FileText } from "lucide-react"
+import { Eye, EyeOff, User, Building2, Upload, UserCheck, X, FileText } from "lucide-react"
 import { cn } from "../../lib/utils"
 import { api } from "../../lib/api"
 
@@ -191,8 +191,8 @@ export function RegisterForm() {
                                 : "text-gray-500 hover:text-gray-700"
                         )}
                     >
-                        <HandHeart className="w-4 h-4" />
-                        Donor / Volunteer
+                        <User className="w-4 h-4" />
+                        User
                     </button>
                     <button
                         onClick={(e) => { e.preventDefault(); setUserType("org"); }}
