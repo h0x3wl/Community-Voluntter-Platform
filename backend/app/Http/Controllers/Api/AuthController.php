@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\UserNotificationPreference;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
 class AuthController extends ApiController
@@ -40,11 +41,23 @@ class AuthController extends ApiController
 
     public function login(LoginRequest $request)
     {
+        $key = 'login-attempt:' . Str::lower($request->input('email')) . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+            return response()->json([
+                'message' => 'Too many login attempts. Please try again in ' . $seconds . ' seconds.',
+            ], 429);
+        }
+
         $user = User::where('email', $request->input('email'))->first();
 
         if (! $user || ! Hash::check($request->input('password'), $user->password)) {
+            RateLimiter::hit($key, 60);
             return response()->json(['message' => 'Invalid credentials.'], 422);
         }
+
+        RateLimiter::clear($key);
 
         $user->forceFill(['last_login_at' => now()])->save();
         $token = $user->createToken('api-token');
